@@ -2,7 +2,7 @@
 
 import org.json.JSONObject;
 
-public class Player extends MDSObject {
+public class Player extends MDSServerObject {
 
 	private String name;
 	private String passwort;

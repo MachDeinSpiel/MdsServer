@@ -2,7 +2,7 @@ package de.hsbremen.mds.server.valueobjects;
 
 import org.json.JSONObject;
 
-public class Game extends MDSObject{
+public class Game extends MDSServerObject{
 
 	private String name;
 

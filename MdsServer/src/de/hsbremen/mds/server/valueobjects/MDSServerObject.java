@@ -2,12 +2,12 @@ package de.hsbremen.mds.server.valueobjects;
 
 import org.json.JSONObject;
 
-abstract class MDSObject {
+abstract class MDSServerObject {
 	
 	protected JSONObject json;
 	protected int id;
 	
-	public MDSObject(JSONObject json, int id) {
+	public MDSServerObject(JSONObject json, int id) {
 		this.json = json;
 		this.id = id;
 	}
