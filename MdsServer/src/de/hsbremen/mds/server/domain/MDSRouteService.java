@@ -18,11 +18,13 @@ public class MDSRouteService extends Application {
 	private AppInfoManager aIM;
 	private GameManager gM;
 	private PlayerManager pM;
+	private ItemManager iM;
 	
-	public MDSRouteService(AppInfoManager aIM, GameManager gM, PlayerManager pM) {
+	public MDSRouteService(AppInfoManager aIM, GameManager gM, PlayerManager pM, ItemManager iM) {
 		this.aIM = aIM;
 		this.gM = gM;
 		this.pM = pM;
+		this.iM = iM;
 
 	}
 
@@ -144,7 +146,45 @@ public class MDSRouteService extends Application {
 					response.setStatus(Status.SUCCESS_CREATED);	
 		    	}
 		    }
-		};  
+		};
+		
+		Restlet item = new Restlet() {  
+		    @Override  
+		    public void handle(Request request, Response response) { 
+		    	//System.out.println(request.getMethod() +  " item : " + request.getAttributes().get("appid"));
+		    	// GET
+		    	if(request.getMethod().equals(Method.GET)){
+		    		String it = "";
+		    		
+		    		// wenn keine Attribute angegeben wurden, alle ausgeben
+		    		if (request.getAttributes().get("itemid") == null) {
+		    			it = mdsRS.aIM.getJson();
+		    		} else { // sonst Element mit der ID ausgeben
+				    	int id = Integer.parseInt((String) request.getAttributes().get("item"));
+				    	//AppInfo holen
+				    	try {
+				    		it = mdsRS.iM.getJson(id);	
+				    	} catch (NullPointerException e){
+				    		it = "{}";
+				    	};
+		    		}		    		
+		    		response.setEntity(it, MediaType.APPLICATION_JSON );
+		    	}
+		    	// POST
+		    	if(request.getMethod().equals(Method.POST)){	
+					// Parse the given representation and retrieve pairs of
+					// "name=value" tokens.
+			    	Representation rep = request.getEntity();
+					Form form = new Form(rep);
+					JSONObject json = new JSONObject(form.getFirstValue("item"));
+					mdsRS.iM.addObject(json);
+
+					// Set the response's status and entity
+					response.setStatus(Status.SUCCESS_CREATED);
+		    		
+		    	}
+		    }
+		}; 
 
 			
 		// Definition der Routen
@@ -153,11 +193,13 @@ public class MDSRouteService extends Application {
 		// Noch nicht ausprogrammiert
 		 router.attach("/player", player);
 		 router.attach("/game", game);
+		 router.attach("/item", item);
 
 		
 		router.attach("/appinfo/{appid}", appinfo); 
 		router.attach("/player/{playerid}", player); 
 		router.attach("/game/{gameid}", game); 
+		router.attach("/item/{itemid}", game); 
 		return router;
 		 
 	}   

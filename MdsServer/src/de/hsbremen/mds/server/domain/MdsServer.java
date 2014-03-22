@@ -32,6 +32,7 @@ public class MdsServer extends ServerResource {
 		AppInfoManager aiM = new AppInfoManager();
 		GameManager gM = new GameManager();
 		PlayerManager pM = new PlayerManager();
+		ItemManager iM = new ItemManager();
 		
 		// REST Service
 //		new Server(Protocol.HTTP, 8182, MdsServer.class).start();
@@ -42,7 +43,7 @@ public class MdsServer extends ServerResource {
 	    component.getServers().add(Protocol.HTTP, 8080);
 
 	    // Attach the sample application.
-	    component.getDefaultHost().attach("/mds", new MDSRouteService(aiM, gM, pM));
+	    component.getDefaultHost().attach("/mds", new MDSRouteService(aiM, gM, pM, iM));
 
 	    // Start the component.
 	    component.start();
