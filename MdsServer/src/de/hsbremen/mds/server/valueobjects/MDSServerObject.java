@@ -20,6 +20,10 @@ abstract class MDSServerObject {
 	public String toString() {
 		return this.json.toString();
 	}
+	
+	public JSONObject getJSON() {
+		return this.json;
+	}
 
 
 }

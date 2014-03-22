@@ -12,7 +12,7 @@ public class AppInfoManager implements ValueObjectInterface{
 	
 	private Set<AppInfo> appinfos;
 	private int id = 0;
-	private String response;
+	private JSONObject response;
 	
 	public AppInfoManager() {
 		this.appinfos = new HashSet<AppInfo>();
@@ -27,22 +27,21 @@ public class AppInfoManager implements ValueObjectInterface{
 	}
 	
 	public int addObject(JSONObject json) {
+		int oldID = id; 
 		this.appinfos.add(new AppInfo(json, id++));
 		this.updateResponse();
-		return id;
+		return oldID;
 		
 	}
 	
 	 public void updateResponse() {
-		String response = "{";
+		JSONObject response = new JSONObject();
 		Iterator<AppInfo> it = appinfos.iterator();
 		while(it.hasNext()) {
 			AppInfo ai = it.next();
-			//TODO: letztes Komma weglassen!
-			response = response + ai.toString() +",";
+			response.put(Integer.toString(ai.getId()), ai.getJSON());
 			System.out.println(ai.toString());
 		}
-		response = response + "}";
 		this.response = response;
 	 }
 	
@@ -64,7 +63,7 @@ public class AppInfoManager implements ValueObjectInterface{
 	}
 	
 	public String getJson() {
-		return this.response;
+		return this.response.toString();
 	}
 	
 	public String getJson(int id) {

@@ -14,6 +14,7 @@ import org.restlet.resource.ServerResource;
  */
 public class MdsServer extends ServerResource {
 	
+	
 	@Get  
 	public String toString() {  
 		
@@ -42,14 +43,7 @@ public class MdsServer extends ServerResource {
 	    // Add a new HTTP server listening on port 8182.
 	    component.getServers().add(Protocol.HTTP, 8080);
 
-	    // Attach the sample application.
-	    component.getDefaultHost().attach("/mds", new MDSRouteService(aiM, gM, pM, iM));
-
-	    // Start the component.
-	    component.start();
-	
-		
-
+	  
 		// Websocket-Server
 		WebSocketImpl.DEBUG = true;
 		int port = 8887; // 843 flash policy port
@@ -58,6 +52,13 @@ public class MdsServer extends ServerResource {
 		} catch (Exception ex) {
 		}
 		WSServer wsServer = new WSServer(port);
+		
+		// Attach the sample application.
+	    component.getDefaultHost().attach("/mds", new MDSRouteService(wsServer, aiM, gM, pM, iM));
+
+	    // Start the component.
+	    component.start();
+		
 		wsServer.start();
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
 
@@ -75,5 +76,10 @@ public class MdsServer extends ServerResource {
 			}
 		}
 	}
+
+
+
+
+
 
 }
