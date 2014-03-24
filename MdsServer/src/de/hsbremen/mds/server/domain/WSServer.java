@@ -8,6 +8,7 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.json.JSONObject;
 
 /**
  * 
@@ -69,5 +70,12 @@ public class WSServer extends WebSocketServer {
 				c.send(text);
 			}
 		}
+	}
+	
+	public void notifyWSClients(String object, int id, String status) {
+		JSONObject json = new JSONObject();
+		json.put(object, id);
+		json.put("status", status);
+		this.sendToAll(json.toString());
 	}
 }

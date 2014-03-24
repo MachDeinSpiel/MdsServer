@@ -6,16 +6,16 @@ import java.util.Set;
 
 import org.json.JSONObject;
 
-import de.hsbremen.mds.server.valueobjects.AppInfo;
+import de.hsbremen.mds.server.valueobjects.Item;
 
-public class AppInfoManager implements ValueObjectInterface{
+public class ItemManager implements ValueObjectInterface{
 	
-	private Set<AppInfo> appinfos;
+	private Set<Item> items;
 	private int id = 0;
-	private JSONObject response;
+	private String response;
 	
-	public AppInfoManager() {
-		this.appinfos = new HashSet<AppInfo>();
+	public ItemManager() {
+		this.items = new HashSet<Item>();
 		
 		// Zum Testen: HashSet befuellen
 		/*
@@ -27,35 +27,36 @@ public class AppInfoManager implements ValueObjectInterface{
 	}
 	
 	public int addObject(JSONObject json) {
-		int oldID = id; 
-		this.appinfos.add(new AppInfo(json, id++));
+		this.items.add(new Item(json, id++));
 		this.updateResponse();
-		return oldID;
+		return id;
 		
 	}
 	
 	 public void updateResponse() {
-		JSONObject response = new JSONObject();
-		Iterator<AppInfo> it = appinfos.iterator();
+		String response = "{";
+		Iterator<Item> it = items.iterator();
 		while(it.hasNext()) {
-			AppInfo ai = it.next();
-			response.put(Integer.toString(ai.getId()), ai.getJSON());
-			System.out.println(ai.toString());
+			Item itm = it.next();
+			//TODO: letztes Komma weglassen!
+			response = response + itm.toString() +",";
+			System.out.println(itm.toString());
 		}
+		response = response + "}";
 		this.response = response;
 	 }
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public AppInfo findObjectById(int id) {
+	public Item findObjectById(int id) {
 
-		Iterator<AppInfo> it = appinfos.iterator();
+		Iterator<Item> it = items.iterator();
 		int i = 0;
 		while(it.hasNext()) {
-			AppInfo ai = it.next();
+			Item itm = it.next();
 			System.out.println("IT " + i++);
-			if ( ai.getId() == id) {
-				return ai;
+			if ( itm.getId() == id) {
+				return itm;
 			}
 		}
 		return null;
@@ -63,7 +64,7 @@ public class AppInfoManager implements ValueObjectInterface{
 	}
 	
 	public String getJson() {
-		return this.response.toString();
+		return this.response;
 	}
 	
 	public String getJson(int id) {

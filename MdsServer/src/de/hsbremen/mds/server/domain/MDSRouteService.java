@@ -8,21 +8,26 @@ import org.restlet.Restlet;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
+import org.restlet.data.Reference;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.routing.Router;
 
 public class MDSRouteService extends Application {
 
-	
+	private WSServer wsserv;
 	private AppInfoManager aIM;
 	private GameManager gM;
 	private PlayerManager pM;
+	private ItemManager iM;
 	
-	public MDSRouteService(AppInfoManager aIM, GameManager gM, PlayerManager pM) {
+	public MDSRouteService(WSServer wsserv, AppInfoManager aIM, GameManager gM, PlayerManager pM, ItemManager iM) {
+
+		this.wsserv = wsserv;
 		this.aIM = aIM;
 		this.gM = gM;
 		this.pM = pM;
+		this.iM = iM;
 
 	}
 
@@ -64,11 +69,11 @@ public class MDSRouteService extends Application {
 			    	Representation rep = request.getEntity();
 					Form form = new Form(rep);
 					JSONObject json = new JSONObject(form.getFirstValue("appinfo"));
-					mdsRS.aIM.addObject(json);
-
+					int id = mdsRS.aIM.addObject(json);
+					// Sende alle Websocket Clients info ueber neue ID 
+					mdsRS.wsserv.notifyWSClients("appinfo", id, "c");
 					// Set the response's status and entity
 					response.setStatus(Status.SUCCESS_CREATED);
-		    		
 		    	}
 		    }
 		}; 
@@ -102,8 +107,8 @@ public class MDSRouteService extends Application {
 			    	Representation rep = request.getEntity();
 					Form form = new Form(rep);
 					JSONObject json = new JSONObject(form.getFirstValue("player"));
-					mdsRS.pM.addObject(json);
-
+					int id = mdsRS.pM.addObject(json);
+					mdsRS.wsserv.notifyWSClients("player", id, "c");
 					// Set the response's status and entity
 					response.setStatus(Status.SUCCESS_CREATED);	
 		    	}
@@ -138,13 +143,51 @@ public class MDSRouteService extends Application {
 			    	Representation rep = request.getEntity();
 					Form form = new Form(rep);
 					JSONObject json = new JSONObject(form.getFirstValue("game"));
-					mdsRS.gM.addObject(json);
-
+					int id = mdsRS.gM.addObject(json);
+					mdsRS.wsserv.notifyWSClients("game", id, "c");
 					// Set the response's status and entity
 					response.setStatus(Status.SUCCESS_CREATED);	
 		    	}
 		    }
-		};  
+		};
+		
+		Restlet item = new Restlet() {  
+		    @Override  
+		    public void handle(Request request, Response response) { 
+		    	//System.out.println(request.getMethod() +  " item : " + request.getAttributes().get("appid"));
+		    	// GET
+		    	if(request.getMethod().equals(Method.GET)){
+		    		String it = "";
+		    		
+		    		// wenn keine Attribute angegeben wurden, alle ausgeben
+		    		if (request.getAttributes().get("itemid") == null) {
+		    			it = mdsRS.aIM.getJson();
+		    		} else { // sonst Element mit der ID ausgeben
+				    	int id = Integer.parseInt((String) request.getAttributes().get("item"));
+				    	//AppInfo holen
+				    	try {
+				    		it = mdsRS.iM.getJson(id);	
+				    	} catch (NullPointerException e){
+				    		it = "{}";
+				    	};
+		    		}		    		
+		    		response.setEntity(it, MediaType.APPLICATION_JSON );
+		    	}
+		    	// POST
+		    	if(request.getMethod().equals(Method.POST)){	
+					// Parse the given representation and retrieve pairs of
+					// "name=value" tokens.
+			    	Representation rep = request.getEntity();
+					Form form = new Form(rep);
+					JSONObject json = new JSONObject(form.getFirstValue("item"));
+					int id = mdsRS.iM.addObject(json);
+					mdsRS.wsserv.notifyWSClients("item", id, "c");
+					// Set the response's status and entity
+					response.setStatus(Status.SUCCESS_CREATED);
+		    		
+		    	}
+		    }
+		}; 
 
 			
 		// Definition der Routen
@@ -153,11 +196,13 @@ public class MDSRouteService extends Application {
 		// Noch nicht ausprogrammiert
 		 router.attach("/player", player);
 		 router.attach("/game", game);
+		 router.attach("/item", item);
 
 		
 		router.attach("/appinfo/{appid}", appinfo); 
 		router.attach("/player/{playerid}", player); 
 		router.attach("/game/{gameid}", game); 
+		router.attach("/item/{itemid}", game); 
 		return router;
 		 
 	}   
