@@ -1,5 +1,8 @@
 package de.hsbremen.mds.server.domain;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.json.JSONObject;
 import org.restlet.Application;
 import org.restlet.Request;
@@ -8,10 +11,13 @@ import org.restlet.Restlet;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
-import org.restlet.data.Reference;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.routing.Router;
+
+import de.hsbremen.mds.server.valueobjects.AppInfo;
+import de.hsbremen.mds.server.valueobjects.Item;
+import de.hsbremen.mds.server.valueobjects.Player;
 
 public class MDSRouteService extends Application {
 
@@ -188,6 +194,60 @@ public class MDSRouteService extends Application {
 		    	}
 		    }
 		}; 
+		
+		Restlet playerItem = new Restlet(getContext()) {  
+		    @Override  
+		    public void handle(Request request, Response response) {  
+		    	// GET
+		    	if(request.getMethod().equals(Method.GET)){
+		    		String pl = "";
+		    		int playerID = Integer.parseInt((String) request.getAttributes().get("playerid"));
+		    		Set<Item> backpack = mdsRS.pM.getBackpack(playerID);
+	    			
+		    		// wenn keine Attribute angegeben wurden, alle ausgeben
+		    		if (request.getAttributes().get("itemid") == null) {
+		    			try {
+		    			Iterator<Item> it = backpack.iterator();
+		    			while(it.hasNext()) {
+		    				Item item = it.next();
+		    				pl = pl + mdsRS.iM.findObjectById(item.getId()).toString();
+		    			}
+		    			} catch (NullPointerException e) {
+				    		pl = "{}";
+				    	
+		    			}
+		    		} else { // sonst Element mit der ID ausgeben
+				    	
+				    	//Item holen
+				    	try {
+				    		int id = Integer.parseInt((String) request.getAttributes().get("itemid"));
+				    		Iterator<Item> it = backpack.iterator();
+			    			while(it.hasNext()) {
+			    				Item item = it.next();
+			    				if(id == item.getId())
+			    					pl = mdsRS.iM.getJson(item.getId());
+			    			}
+				    	} catch (NullPointerException e) {
+				    		pl = "{}";
+				    	}
+		    		}	
+		    		response.setEntity(pl, MediaType.APPLICATION_JSON );
+		    	}
+		    	// POST
+		    	if(request.getMethod().equals(Method.POST)){
+					// Parse the given representation and retrieve pairs of
+					// "name=value" tokens.
+			    	Representation rep = request.getEntity();
+					Form form = new Form(rep);
+					JSONObject json = new JSONObject(form.getFirstValue("item"));
+					int id = mdsRS.iM.addObject(json);
+					mdsRS.wsserv.notifyWSClients("item", id, "c");
+					// Set the response's status and entity
+					response.setStatus(Status.SUCCESS_CREATED);	
+		    	}
+		    }
+		}; 
+		
 
 			
 		// Definition der Routen
@@ -197,12 +257,25 @@ public class MDSRouteService extends Application {
 		 router.attach("/player", player);
 		 router.attach("/game", game);
 		 router.attach("/item", item);
+		 
+		 
+		 router.attach("/appinfo/", appinfo);
+		 router.attach("/player/", player);
+		 router.attach("/game/", game);
+		 router.attach("/item/", item);
 
 		
 		router.attach("/appinfo/{appid}", appinfo); 
 		router.attach("/player/{playerid}", player); 
 		router.attach("/game/{gameid}", game); 
 		router.attach("/item/{itemid}", game); 
+		
+		
+		router.attach("/player/{playerid}/item/{itemid}", playerItem);  
+		router.attach("/player/{playerid}/item", playerItem);  
+		
+		router.attach("/player/{playerid}/item/", playerItem);  
+		
 		return router;
 		 
 	}   

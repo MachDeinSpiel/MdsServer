@@ -7,6 +7,7 @@ import java.util.Set;
 import org.json.JSONObject;
 
 import de.hsbremen.mds.server.valueobjects.Item;
+import de.hsbremen.mds.server.valueobjects.Player;
 
 public class ItemManager implements ValueObjectInterface{
 	
@@ -18,11 +19,17 @@ public class ItemManager implements ValueObjectInterface{
 		this.items = new HashSet<Item>();
 		
 		// Zum Testen: HashSet befuellen
-		/*
-		JSONObject json = new JSONObject("{json:true;}");
+		
+		JSONObject json = new JSONObject("{item:true;}");
 		this.addObject(json);
+		json = new JSONObject("{item:true 1;}");
 		this.addObject(json);
-		*/
+		json = new JSONObject("{item:true 2;}");
+		this.addObject(json);
+		json = new JSONObject("{item: false;}");
+		this.addObject(json);
+
+		
 		this.updateResponse();
 	}
 	
@@ -32,6 +39,8 @@ public class ItemManager implements ValueObjectInterface{
 		return id;
 		
 	}
+
+	
 	
 	 public void updateResponse() {
 		String response = "{";
@@ -62,6 +71,7 @@ public class ItemManager implements ValueObjectInterface{
 		return null;
 		
 	}
+	
 	
 	public String getJson() {
 		return this.response;

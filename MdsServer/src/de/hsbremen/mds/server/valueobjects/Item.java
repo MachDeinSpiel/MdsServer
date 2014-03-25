@@ -9,5 +9,9 @@ public class Item extends MDSServerObject{
 		super(item, id);
 	}
 	
+	
+	public int getItem(int id) {
+		return this.id;
+	}
 
 }

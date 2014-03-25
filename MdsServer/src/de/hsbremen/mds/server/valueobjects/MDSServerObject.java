@@ -24,6 +24,8 @@ abstract class MDSServerObject {
 	public JSONObject getJSON() {
 		return this.json;
 	}
+	
+	
 
 
 }

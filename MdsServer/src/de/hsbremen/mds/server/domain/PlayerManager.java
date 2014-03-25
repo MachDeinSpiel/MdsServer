@@ -7,6 +7,7 @@ import java.util.Set;
 import org.json.JSONObject;
 import org.restlet.resource.ServerResource;
 
+import de.hsbremen.mds.server.valueobjects.Item;
 import de.hsbremen.mds.server.valueobjects.Player;
 
 public class PlayerManager extends ServerResource implements ValueObjectInterface{
@@ -20,12 +21,12 @@ public class PlayerManager extends ServerResource implements ValueObjectInterfac
 		
 
 		// Zum Testen: HashSet befuellen
-		/*
+				
+		JSONObject item = new JSONObject("{}");
 		JSONObject json = new JSONObject("{json:true, Player: "+id+";}");
-		this.addObject(json);
-		json = new JSONObject("{json:true, Player: "+id+";}");
-		this.addObject(json);
-		*/
+		this.testBackpack(json, item);
+		
+		
 		this.updateResponse();
 		
 	}
@@ -36,6 +37,30 @@ public class PlayerManager extends ServerResource implements ValueObjectInterfac
 		return id;
 		
 	}
+	
+	public Set<Item> getBackpack(int id){
+		Player player = this.findPlayerById(id);
+		return player.getBackpack();
+	}
+	
+	
+	public int testBackpack(JSONObject json,JSONObject item){
+		Player pl = new Player(json, id++);
+		this.player.add(pl);
+		
+		Item it = new Item(item, 0);
+		pl.addToBackpack(it);
+		it = new Item(item, 1);
+		pl.addToBackpack(it);
+		it = new Item(item, 2);
+		pl.addToBackpack(it);
+		
+	
+		this.updateResponse();
+		return id;
+	}
+	
+	
 	
 	 public void updateResponse() {
 		String response = "{";

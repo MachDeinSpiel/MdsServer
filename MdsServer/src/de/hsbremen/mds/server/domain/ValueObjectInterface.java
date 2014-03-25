@@ -1,5 +1,7 @@
 package de.hsbremen.mds.server.domain;
 
+import de.hsbremen.mds.server.valueobjects.Player;
+
 interface ValueObjectInterface {
 
 	
