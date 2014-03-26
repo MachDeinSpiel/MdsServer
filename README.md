@@ -61,7 +61,7 @@ Beispiel
 
 4. (Server) WS		Server sendet an alle angemeldeten WS-Teilnehmer JSON Statusnachricht, dass sich ein neuer Player angemeldet hat.
 
-					{"status":"c", "class“="player“, "id“:0} 
+					{"status":"c", "class"="player", "id":0} 
 					Aufbau, siehe "Server Status-Nachrichten"
 
 5. (Client) WS		Client empfängt WS-Nachricht und aktualisiert darauf das entsprechende Objekt über REST
@@ -79,7 +79,7 @@ Beispiel
 
 7.1.1 (Server) WS	Server sendet an alle angemeldeten WS-Teilnehmer JSON Statusnachricht, dass sich ein Spiel geändert hat.
 
-					{"status":"u", "class“="game“, "id“:0}
+					{"status":"u", "class"="game", "id":0}
 
 7.1.2 (Client) WS	Client empfängt WS-Nachricht und aktualisiert darauf das entsprechende Objekt über REST
 
@@ -92,7 +92,7 @@ Beispiel
 
 7.2.1 (Server) WS	Server sendet an alle angemeldeten WS-Teilnehmer JSON Statusnachricht, dass es ein neues Spiel gibt.
 
-					Bsp.: {"status":"c", "class“="game“, "id“:1}
+					Bsp.: {"status":"c", "class"="game", "id":1}
 
 7.2.2 (Client) WS	Client empfängt WS-Nachricht und aktualisiert darauf das entsprechende Objekt über REST
 
@@ -107,15 +107,17 @@ Aufbau der Nachricht:
 
     {"status":"<Status-Char>", "object":"<Klassenname>", "id":<int>}
 
-Status-Chars:
-"c" = neues Object (create)
-"u" = Objekt aktualisiert (update)
-"d" = Objekt gelöscht (delete)
+Status-Chars
+--
+"c" = neues Object (create)  
+"u" = Objekt aktualisiert (update)  
+"d" = Objekt gelöscht (delete)  
 
 Objekte
-"appinfo" 	=	JSON-Apps und -Games		
-"player"		=	Spieler
-"game"		=	Spiele auf dem Server
-"item"		=	Items auf der Karte
+--
+"appinfo" = JSON-Apps und -Games  
+"player" = Spieler  
+"game" = Spiele auf dem Server  
+"item" = Items auf der Karte  
 
-Alle WebSocket Nachrichten die mit "#" beginnen sollen ignoriert werden (kann für sonstige Status oder Debugging genutzt werden).
+Alle WebSocket Nachrichten die mit "#" beginnen, sollen ignoriert werden (kann für sonstige Status oder Debugging genutzt werden).
