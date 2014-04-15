@@ -55,6 +55,13 @@ public class WSServer extends WebSocketServer {
 			
 		}
 		
+		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
+			  if (!entry.getValue().equals(conn)) {
+				  entry.getValue().send(message);
+			  }
+			
+		}
+		
 		//this.sendToAll(message);
 		System.out.println(conn + ": " + message);
 	}
