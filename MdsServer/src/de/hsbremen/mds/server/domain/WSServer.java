@@ -3,6 +3,7 @@ package de.hsbremen.mds.server.domain;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.HashMap;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
@@ -15,7 +16,8 @@ import org.json.JSONObject;
  */
 public class WSServer extends WebSocketServer {
 	
-
+	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
+	private int idcount;
 	public WSServer(int port) throws UnknownHostException {
 		super(new InetSocketAddress(port) );
 	}
@@ -26,6 +28,7 @@ public class WSServer extends WebSocketServer {
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		clients.put(idcount++, conn);
 		this.sendToAll("new connection: " + handshake.getResourceDescriptor() );
 		System.out.println(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " entered the room!");
 	}
