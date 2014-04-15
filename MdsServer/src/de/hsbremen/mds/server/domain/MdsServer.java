@@ -46,7 +46,7 @@ public class MdsServer extends ServerResource {
 	  
 		// Websocket-Server
 		WebSocketImpl.DEBUG = true;
-		int port = 8887; // 843 flash policy port
+		int port = 8000; // 843 flash policy port
 		try {
 			port = Integer.parseInt(args[ 0 ]);
 		} catch (Exception ex) {

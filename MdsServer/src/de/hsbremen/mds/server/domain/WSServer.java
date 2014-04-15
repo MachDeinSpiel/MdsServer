@@ -16,9 +16,11 @@ import org.json.JSONObject;
  * 
  */
 public class WSServer extends WebSocketServer {
-	
+	private HashMap<Integer,JSONObject> locat = new HashMap<Integer, JSONObject>();
 	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
 	private int idcount;
+	
+	
 	public WSServer(int port) throws UnknownHostException {
 		super(new InetSocketAddress(port) );
 	}
@@ -45,7 +47,12 @@ public class WSServer extends WebSocketServer {
 		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
 			  if (entry.getValue().equals(conn)) {
 				  System.out.println(entry.getKey());
+				  this.locat.put(entry.getKey(), new JSONObject(message));
+				  
+				  System.out.println("Der Client mit der ID: " +entry.getKey() +" Latitude " +this.locat.get(entry.getKey()).get("Latitude"));
+				  System.out.println("Der Client mit der ID: " +entry.getKey() +" Longitude " +this.locat.get(entry.getKey()).get("Longitude"));
 			  }
+			
 		}
 		
 		//this.sendToAll(message);
@@ -55,7 +62,7 @@ public class WSServer extends WebSocketServer {
 	public void onFragment(WebSocket conn, Framedata fragment) {
 //		System.out.println("received fragment: " + fragment);
 	}
-
+	
 	
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
