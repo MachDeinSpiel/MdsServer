@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
@@ -41,6 +42,12 @@ public class WSServer extends WebSocketServer {
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
+		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
+			  if (entry.getValue().equals(conn)) {
+				  System.out.println(entry.getKey());
+			  }
+		}
+		
 		//this.sendToAll(message);
 		System.out.println(conn + ": " + message);
 	}
