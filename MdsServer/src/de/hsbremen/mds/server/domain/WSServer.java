@@ -44,10 +44,14 @@ public class WSServer extends WebSocketServer {
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
+		JSONObject json = new JSONObject(message);
+		
+		
 		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
 			  if (entry.getValue().equals(conn)) {
 				  System.out.println(entry.getKey());
-				  this.locat.put(entry.getKey(), new JSONObject(message));
+				  this.locat.put(entry.getKey(), json);
+				  json.put("ClientID", entry.getKey());
 				  
 				  System.out.println("Der Client mit der ID: " +entry.getKey() +" Latitude " +this.locat.get(entry.getKey()).get("Latitude"));
 				  System.out.println("Der Client mit der ID: " +entry.getKey() +" Longitude " +this.locat.get(entry.getKey()).get("Longitude"));
@@ -57,7 +61,7 @@ public class WSServer extends WebSocketServer {
 		
 		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
 			  if (!entry.getValue().equals(conn)) {
-				  entry.getValue().send(message);
+				  entry.getValue().send(json.toString());
 			  }
 			
 		}
