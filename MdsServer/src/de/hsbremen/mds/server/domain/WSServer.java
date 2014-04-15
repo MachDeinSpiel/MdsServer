@@ -53,7 +53,7 @@ public class WSServer extends WebSocketServer {
 	}
 
 	public void onFragment(WebSocket conn, Framedata fragment) {
-		System.out.println("received fragment: " + fragment);
+//		System.out.println("received fragment: " + fragment);
 	}
 
 	
