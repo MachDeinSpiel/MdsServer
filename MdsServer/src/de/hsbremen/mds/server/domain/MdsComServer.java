@@ -15,17 +15,17 @@ import org.json.JSONObject;
 /**
  * 
  */
-public class WSServer extends WebSocketServer {
+public class MdsComServer extends WebSocketServer {
 	private HashMap<Integer,JSONObject> locat = new HashMap<Integer, JSONObject>();
 	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
 	private int idcount;
 	
 	
-	public WSServer(int port) throws UnknownHostException {
+	public MdsComServer(int port) throws UnknownHostException {
 		super(new InetSocketAddress(port) );
 	}
 
-	public WSServer(InetSocketAddress address) {
+	public MdsComServer(InetSocketAddress address) {
 		super(address);
 	}
 
