@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.java_websocket.WebSocket;
@@ -12,10 +13,14 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
+import de.hsbremen.mds.common.interfaces.ClientInterpreterInterface;
+import de.hsbremen.mds.common.whiteboard.Whiteboard;
+import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+
 /**
  * 
  */
-public class MdsComServer extends WebSocketServer {
+public class MdsComServer extends WebSocketServer implements ClientInterpreterInterface {
 	private HashMap<Integer,JSONObject> locat = new HashMap<Integer, JSONObject>();
 	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
 	private int idcount;
@@ -105,5 +110,17 @@ public class MdsComServer extends WebSocketServer {
 		json.put(object, id);
 		json.put("status", status);
 		this.sendToAll(json.toString());
+	}
+
+	@Override
+	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onFullWhiteboardUpdate(Whiteboard newWhiteboard) {
+		// TODO Auto-generated method stub
+		
 	}
 }

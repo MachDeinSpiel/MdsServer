@@ -23,10 +23,12 @@ public class MdsServer {
 		
 		MdsComServer wsServer = new MdsComServer(port);
 
-		
 		wsServer.start();
+		
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
+		
 		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
+		
 		while (true) {
 			String in = sysin.readLine();
 			wsServer.sendToAll(in);
