@@ -13,14 +13,17 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
-import de.hsbremen.mds.common.interfaces.ClientInterpreterInterface;
+import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 
 /**
  * 
  */
-public class MdsComServer extends WebSocketServer implements ClientInterpreterInterface {
+public class MdsComServer extends WebSocketServer implements ComServerInterface {
+	
+	private MdsServerInterpreter mdsServerInterpreter = new MdsServerInterpreter(this);
+	
 	private HashMap<Integer,JSONObject> locat = new HashMap<Integer, JSONObject>();
 	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
 	private int idcount;
@@ -33,9 +36,30 @@ public class MdsComServer extends WebSocketServer implements ClientInterpreterIn
 	public MdsComServer(InetSocketAddress address) {
 		super(address);
 	}
+	
+	//public String objectToJsonString(Object obj) {
+		// TODO: GSON
+		
+		//Gson gson = new GsonBuilder().create();
+
+		//System.out.println(gson.toJson(obj));
+
+		//return gson.toJson(obj);
+
+	//}
+
+	//public Object jsonStringToObject(String json) {
+		// TODO: GSON
+		//Gson gson = new GsonBuilder().create();
+
+		// TODO: für getClass() muss anscheinend die Klasse
+		// in die das Objekt umgewandelt wird angegeben werden
+		//return gson.fromJson(json, getClass());
+	//}
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		this.mdsServerInterpreter.addNewClient(conn);
 		clients.put(idcount++, conn);
 		this.sendToAll("new connection: " + handshake.getResourceDescriptor() );
 		System.out.println(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " entered the room!");
@@ -43,12 +67,15 @@ public class MdsComServer extends WebSocketServer implements ClientInterpreterIn
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+		this.mdsServerInterpreter.removeClient(conn, code, reason, remote);
 		this.sendToAll(conn + " has left the room!");
 		System.out.println( conn + " has left the room!");
 	}
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
+		
+		
 		JSONObject json = new JSONObject(message);
 		
 		
@@ -121,6 +148,18 @@ public class MdsComServer extends WebSocketServer implements ClientInterpreterIn
 	@Override
 	public void onFullWhiteboardUpdate(Whiteboard newWhiteboard) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value,
+			WebSocket conn) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onFullWhiteboardUpdate(Whiteboard newWhiteboard, WebSocket conn) {
 		
 	}
 }

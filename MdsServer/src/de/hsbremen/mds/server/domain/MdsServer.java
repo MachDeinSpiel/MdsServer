@@ -28,7 +28,7 @@ public class MdsServer {
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
 		
 		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
-		
+		/*
 		while (true) {
 			String in = sysin.readLine();
 			wsServer.sendToAll(in);
@@ -40,7 +40,7 @@ public class MdsServer {
 				wsServer.start();
 				break;
 			}
-		}
+		}*/
 	}
 
 }
