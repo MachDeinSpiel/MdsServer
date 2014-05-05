@@ -13,6 +13,7 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
+import de.hsbremen.mds.common.gson.ObjectGsonConverter;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
@@ -37,25 +38,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		super(address);
 	}
 	
-	//public String objectToJsonString(Object obj) {
-		// TODO: GSON
-		
-		//Gson gson = new GsonBuilder().create();
-
-		//System.out.println(gson.toJson(obj));
-
-		//return gson.toJson(obj);
-
-	//}
-
-	//public Object jsonStringToObject(String json) {
-		// TODO: GSON
-		//Gson gson = new GsonBuilder().create();
-
-		// TODO: für getClass() muss anscheinend die Klasse
-		// in die das Objekt umgewandelt wird angegeben werden
-		//return gson.fromJson(json, getClass());
-	//}
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
@@ -98,8 +80,12 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			
 		}
 		
-		//this.sendToAll(message);
 		System.out.println(conn + ": " + message);
+		
+		ObjectGsonConverter oGConverter = new ObjectGsonConverter();
+		Object objectFromClient = oGConverter.jsonStringToObject(message);
+		// TODO: mdsServerInterpreter.receiveMessage(objectFromClient, conn);
+		
 	}
 
 	public void onFragment(WebSocket conn, Framedata fragment) {
@@ -152,14 +138,21 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 
 	@Override
-	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value,
-			WebSocket conn) {
-		// TODO Auto-generated method stub
+	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value, WebSocket conn) {
+		
+		ObjectGsonConverter oGConverter = new ObjectGsonConverter();
+		String jsonForClient = oGConverter.objectToJsonString(keys);
+		jsonForClient += oGConverter.objectToJsonString(value);
+		conn.send(jsonForClient);
 		
 	}
 
 	@Override
 	public void onFullWhiteboardUpdate(Whiteboard newWhiteboard, WebSocket conn) {
+		
+		ObjectGsonConverter oGConverter = new ObjectGsonConverter();
+		String jsonForClient = oGConverter.objectToJsonString(newWhiteboard);
+		conn.send(jsonForClient);
 		
 	}
 }
