@@ -13,7 +13,6 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
-import de.hsbremen.mds.common.gson.ObjectGsonConverter;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
@@ -28,6 +27,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private HashMap<Integer,JSONObject> locat = new HashMap<Integer, JSONObject>();
 	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
 	private int idcount;
+	
+
 	
 	
 	public MdsComServer(int port) throws UnknownHostException {
@@ -82,9 +83,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		System.out.println(conn + ": " + message);
 		
-		ObjectGsonConverter oGConverter = new ObjectGsonConverter();
-		Object objectFromClient = oGConverter.jsonStringToObject(message);
-		// TODO: mdsServerInterpreter.receiveMessage(objectFromClient, conn);
+		// TODO: mdsServerInterpreter.receiveMessage(converFromJson(message), conn);
 		
 	}
 
@@ -138,21 +137,30 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 
 	@Override
-	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value, WebSocket conn) {
+	public void onWhiteboardUpdate(WebSocket conn, String value, String visibillity, String... keys) {
 		
-		ObjectGsonConverter oGConverter = new ObjectGsonConverter();
-		String jsonForClient = oGConverter.objectToJsonString(keys);
-		jsonForClient += oGConverter.objectToJsonString(value);
-		conn.send(jsonForClient);
+		JSONObject json = new JSONObject();
 		
+		json.put("visibillity", visibillity);
+		json.put("value", value);		
+		json.put("keys", arrayToString(keys, "."));
+		
+		conn.send(json.toString());
+		
+	}
+	
+	// Convert an array of strings to one string.
+	// Put the 'separator' string between each element
+	public static String arrayToString(String[] a, String separator) {
+	    String result = "";
+	    if (a.length > 0) {
+	        result = a[0];    // start with the first element
+	        for (int i=1; i<a.length; i++) {
+	            result = result + separator + a[i];
+	        }
+	    }
+	    return result;
 	}
 
-	@Override
-	public void onFullWhiteboardUpdate(Whiteboard newWhiteboard, WebSocket conn) {
-		
-		ObjectGsonConverter oGConverter = new ObjectGsonConverter();
-		String jsonForClient = oGConverter.objectToJsonString(newWhiteboard);
-		conn.send(jsonForClient);
-		
-	}
+
 }

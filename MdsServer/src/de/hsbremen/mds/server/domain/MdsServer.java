@@ -1,8 +1,5 @@
 package de.hsbremen.mds.server.domain;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import org.java_websocket.WebSocketImpl;
 
 /**
@@ -20,15 +17,16 @@ public class MdsServer {
 		} catch (Exception ex) {
 			
 		}
-		
+				
 		MdsComServer wsServer = new MdsComServer(port);
 
 		wsServer.start();
 		
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
 		
-		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
 		/*
+		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
+		
 		while (true) {
 			String in = sysin.readLine();
 			wsServer.sendToAll(in);
