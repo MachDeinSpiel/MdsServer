@@ -25,8 +25,10 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 	}
 	
 	
-	@Override
-	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+	
+	//String pfad = game->players->playerOne; String value = "xyz;"
+	public void onWhiteboardUpdate(List<String> keys, String value) {
+
 		int i = 0;
 		boolean b = true;
 		String[] key = new String[keys.size()];
@@ -35,7 +37,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 			whiteboard.setAttributeValue(value, key);
 		}else{
 			do{
-				
 				if(whiteboard.getAttribute(keys.get(i)) == null){
 				//	whiteboard.put(keys, value);
 					b = false;
@@ -44,9 +45,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 				}
 			}while(b);
 		}
-		
-		
-		
 		
 		//this.comServer.onWhiteboardUpdate(keys, value, conn);
 	}
@@ -68,13 +66,16 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 		
 	}
 	
-	//TODO: Key Pfard erstellen. 
-	private String[] getKeys(Whiteboard w){
+	//TODO: Key Pfad erstellen. 
+	/*private String[] getKeys(Object value, Whiteboard w){
 		String[] keys = new String[w.size()];
 		
+		if(w.get(value) != null) {
+			
+		}
 		
 		return keys;
-	}
+	}*/
 	
 	//TEST WHITEBOARD
 	private void whiteboardErstellen(){
