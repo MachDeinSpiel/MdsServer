@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.management.timer.Timer;
+
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
@@ -160,6 +162,27 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	        }
 	    }
 	    return result;
+	}
+	
+	
+	// Bot zum Senden zufälliger Koordninaten über WS
+	public void bot(){
+		double botLongitude, botLatitude;
+		while(true){
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			botLatitude = myRandom(52.9,53.9);
+			botLongitude = myRandom(8.2,8.9);
+			System.out.println("Latitude: " +botLatitude+ " und Longitude: " +botLongitude);
+		}
+	}
+	// Zufallsgenerator
+	public static double myRandom(double low, double high) {
+		return Math.random() * (high - low) + low;
 	}
 
 
