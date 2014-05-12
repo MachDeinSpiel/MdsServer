@@ -143,8 +143,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		JSONObject json = new JSONObject();
 		
+		
+		json.put("value", value);
 		json.put("visibillity", visibillity);
-		json.put("value", value);		
 		json.put("keys", arrayToString(keys, "."));
 		
 		conn.send(json.toString());
@@ -153,12 +154,12 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 	// Convert an array of strings to one string.
 	// Put the 'separator' string between each element
-	public static String arrayToString(String[] a, String separator) {
+	public static String arrayToString(String[] stringArray, String separator) {
 	    String result = "";
-	    if (a.length > 0) {
-	        result = a[0];    // start with the first element
-	        for (int i=1; i<a.length; i++) {
-	            result = result + separator + a[i];
+	    if (stringArray.length > 0) {
+	        result = stringArray[0];    // start with the first element
+	        for (int i=1; i<stringArray.length; i++) {
+	            result = result + separator + stringArray[i];
 	        }
 	    }
 	    return result;
