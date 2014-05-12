@@ -65,56 +65,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		
-		WhiteboardEntry wbEntry = new WhiteboardEntry(new MdsImage("ImageName", "http:www.dings.de", "ImageText"), "all");
-		
-		String serializedObject = "";
-		 // serialize the object
-		 try {
-		     ByteArrayOutputStream bo = new ByteArrayOutputStream();
-		     ObjectOutputStream so = new ObjectOutputStream(bo);
-		     so.writeObject(wbEntry);
-		     so.flush();
-		     serializedObject = bo.toString();
-		 } catch (Exception e) {
-		     e.printStackTrace();
-		 }
-		 
-		 //System.out.println("JSON Entry: " + serializedObject);
-		 WhiteboardEntry obj = null;
-		 
-		 // deserialize the object
-		 try {
-		     byte b[] = serializedObject.getBytes(); 
-		     ByteArrayInputStream bi = new ByteArrayInputStream(b);
-		     ObjectInputStream si = new ObjectInputStream(bi);
-		     obj = (WhiteboardEntry) si.readObject();
-		 } catch (Exception e) {
-		     e.printStackTrace();
-		 }
-		 
-		 MdsImage image = (MdsImage) obj.value;
-		 System.out.println("JSON Entry Name: " + obj.visibility + " ");
-		 System.out.println("Image: " + image.getName());
-		 
-		 this.sendToAll(serializedObject);
-		
-		/*
-		JSONObject json = new JSONObject(message);
-		
-		
-		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
-			  if (entry.getValue().equals(conn)) {
-				  System.out.println(entry.getKey());
-				  this.locat.put(entry.getKey(), json);
-				  json.put("ClientID", entry.getKey());
-				  
-				  System.out.println("Der Client mit der ID: " +entry.getKey() +" Latitude " +this.locat.get(entry.getKey()).get("Latitude"));
-				  System.out.println("Der Client mit der ID: " +entry.getKey() +" Longitude " +this.locat.get(entry.getKey()).get("Longitude"));
-			  }
-			
-		}
-		*/
-		 
 		 
 		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
 			  if (!entry.getValue().equals(conn)) {
