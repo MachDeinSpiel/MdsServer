@@ -1,6 +1,14 @@
 package de.hsbremen.mds.server.domain;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.java_websocket.WebSocketImpl;
+
+import de.hsbremen.mds.common.valueobjects.MdsImage;
+import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 
 /**
  * 
@@ -23,6 +31,8 @@ public class MdsServer {
 		wsServer.start();
 		
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
+		
+		
 		
 		/*
 		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));

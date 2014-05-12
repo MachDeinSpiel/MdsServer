@@ -1,5 +1,9 @@
 package de.hsbremen.mds.server.domain;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
@@ -16,6 +20,7 @@ import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
+import de.hsbremen.mds.common.valueobjects.MdsImage;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 
@@ -60,7 +65,40 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		
+		WhiteboardEntry wbEntry = new WhiteboardEntry(new MdsImage("ImageName", "http:www.dings.de", "ImageText"), "all");
 		
+		String serializedObject = "";
+		 // serialize the object
+		 try {
+		     ByteArrayOutputStream bo = new ByteArrayOutputStream();
+		     ObjectOutputStream so = new ObjectOutputStream(bo);
+		     so.writeObject(wbEntry);
+		     so.flush();
+		     serializedObject = bo.toString();
+		 } catch (Exception e) {
+		     e.printStackTrace();
+		 }
+		 
+		 //System.out.println("JSON Entry: " + serializedObject);
+		 WhiteboardEntry obj = null;
+		 
+		 // deserialize the object
+		 try {
+		     byte b[] = serializedObject.getBytes(); 
+		     ByteArrayInputStream bi = new ByteArrayInputStream(b);
+		     ObjectInputStream si = new ObjectInputStream(bi);
+		     obj = (WhiteboardEntry) si.readObject();
+		 } catch (Exception e) {
+		     e.printStackTrace();
+		 }
+		 
+		 MdsImage image = (MdsImage) obj.value;
+		 System.out.println("JSON Entry Name: " + obj.visibility + " ");
+		 System.out.println("Image: " + image.getName());
+		 
+		 this.sendToAll(serializedObject);
+		
+		/*
 		JSONObject json = new JSONObject(message);
 		
 		
@@ -75,17 +113,18 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			  }
 			
 		}
-		
+		*/
+		 
+		 
 		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
 			  if (!entry.getValue().equals(conn)) {
-				  entry.getValue().send(json.toString());
+				  entry.getValue().send(message);
 			  }
 			
 		}
 		
 		System.out.println(conn + ": " + message);
 		
-		// TODO: mdsServerInterpreter.receiveMessage(converFromJson(message), conn);
 		
 	}
 

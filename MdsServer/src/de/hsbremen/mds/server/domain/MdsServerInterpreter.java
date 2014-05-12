@@ -1,13 +1,11 @@
 package de.hsbremen.mds.server.domain;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.java_websocket.WebSocket;
 
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
-import de.hsbremen.mds.common.valueobjects.statemachine.MdsPlayer;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 
@@ -76,7 +74,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 		
 		return keys;
 	}*/
-	
+	/*
 	//TEST WHITEBOARD
 	private void whiteboardErstellen(){
 		//Whiteboards
@@ -93,5 +91,14 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 		whiteboard.put("players", playerBoardEnty);
 		playerboard.put("detlef", playerEntyOne);
 		playerboard.put("Mascha", playerEntyTwo);
+	}
+	*/
+
+
+
+	@Override
+	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+		// TODO Auto-generated method stub
+		
 	}
 }
