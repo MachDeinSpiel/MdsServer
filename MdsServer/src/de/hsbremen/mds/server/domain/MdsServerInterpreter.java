@@ -2,10 +2,15 @@ package de.hsbremen.mds.server.domain;
 
 import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
+import java.util.regex.Pattern;
 import org.java_websocket.WebSocket;
-
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
+import de.hsbremen.mds.common.valueobjects.MdsImage;
+import de.hsbremen.mds.common.valueobjects.MdsItem;
+import de.hsbremen.mds.common.valueobjects.MdsMap;
+import de.hsbremen.mds.common.valueobjects.MdsText;
+import de.hsbremen.mds.common.valueobjects.MdsVideo;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 
@@ -14,6 +19,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 	Whiteboard whiteboard = new Whiteboard();
 	//---------------------------------
 	private MdsComServer comServer;
+	//Websockets Hashmap...
 	private HashMap<Integer,WebSocket> clients = new HashMap<Integer, WebSocket>();
 	private int idcount = 0;
 	
@@ -22,79 +28,56 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 		
 	}
 	
-	
-	
-	//String pfad = game->players->playerOne; String value = "xyz;"
-	public void onWhiteboardUpdate(List<String> keys, String value) {
 
-		int i = 0;
-		boolean b = true;
-		String[] key = new String[keys.size()];
-		key = keys.toArray(key);
-		if(whiteboard.getAttribute(key) != null){
-			whiteboard.setAttributeValue(value, key);
-		}else{
-			do{
-				if(whiteboard.getAttribute(keys.get(i)) == null){
-				//	whiteboard.put(keys, value);
-					b = false;
-				}else{
-					i++;
-				}
-			}while(b);
+//	@Override
+//	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+//		// TODO Auto-generated method stub
+//		
+//	}
+	
+	public void onWhiteboardUpdate(String path, String value) {
+		String[] keys = getStringWhiteboardPath(path);
+		//Object obValue = getWhiteboardValue(value);
+		if(whiteboard.getAttribute(keys) != null){
+			whiteboard.setAttributeValue(value, keys);
+		}else if(whiteboard.getAttribute(keys) == null){
+			whiteboard.setAttributeValue(value, keys);
 		}
 		
-		//this.comServer.onWhiteboardUpdate(keys, value, conn);
+		
+		//TODO: nach erfolgreichen update, MdsComServer die Strings uebergebene 
 	}
-
-	public void receiveMessage(Object ob, WebSocket ws){
+	/*
+	 * Zerlegt den String Path
+	 * @return: String Array 
+	 */
+	private String[] getStringWhiteboardPath(String path){
+		String[] pathArray = path.split(Pattern.quote("+"));
+		return pathArray;
+	}
 	
+	//
+	public void receiveMessage(Object ob, WebSocket ws){
+		
 	}
 	//Client merken
 	public void addNewClient(WebSocket conn) {
 		if (!this.clients.containsValue(conn)) {
 			this.clients.put(this.idcount++, conn);
 		}
+		//TODO: whiteboard update?!
 	}
 
 	//Client entfernen
 	public void removeClient(WebSocket conn, int code, String reason, boolean remote) {
-
-		// TODO: this.clients.remove(key);
-		
-	}
-	
-	//TODO: Key Pfad erstellen. 
-	/*private String[] getKeys(Object value, Whiteboard w){
-		String[] keys = new String[w.size()];
-		
-		if(w.get(value) != null) {
-			
+		if(this.clients.containsValue(conn)){
+			for (Map.Entry<Integer, WebSocket> entry : clients.entrySet()){
+	    		if(entry.getValue().equals(conn)){
+	    			this.clients.remove(entry.getKey());
+	    		}
+	    	}
 		}
-		
-		return keys;
-	}*/
-	/*
-	//TEST WHITEBOARD
-	private void whiteboardErstellen(){
-		//Whiteboards
-		Whiteboard whiteboard  = new Whiteboard();
-		Whiteboard playerboard = new Whiteboard();
-		//Players
-		MdsPlayer playerOne = new MdsPlayer("Detlef", 8.8934326171875, 53.053321150329076);
-		MdsPlayer playerTwo = new MdsPlayer("Mascha", 8.8934326171875, 53.053321150329076);
-		//WhiteboardEnty
-		WhiteboardEntry playerBoardEnty = new WhiteboardEntry(playerboard, "board");
-		WhiteboardEntry playerEntyOne   = new WhiteboardEntry(playerOne, "player1");
-		WhiteboardEntry playerEntyTwo   = new WhiteboardEntry(playerTwo, "player2");
-		//PUT
-		whiteboard.put("players", playerBoardEnty);
-		playerboard.put("detlef", playerEntyOne);
-		playerboard.put("Mascha", playerEntyTwo);
 	}
-	*/
-
-
 
 	@Override
 	/**
