@@ -97,7 +97,14 @@ public class MdsServerInterpreter implements ServerInterpreterInterface {
 
 
 	@Override
-	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+	/**
+	 * Wenn vom ComServer eine neue Nachricht empfangen wird, wird diese Methode aufgerufen.
+	 * 
+	 * @param WebSocket conn - das WebSocket welches die Nachricht gesendet hat
+	 * @param List<String> keys - Der Pfad als List
+	 * @param WhiteboardEntry entry - der Entry mit Value und Visibility
+	 */
+	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		// TODO Auto-generated method stub
 		
 	}

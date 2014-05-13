@@ -1,14 +1,15 @@
 package de.hsbremen.mds.server.domain;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
 import org.java_websocket.WebSocketImpl;
+import org.json.JSONObject;
 
-import de.hsbremen.mds.common.valueobjects.MdsImage;
+import de.hsbremen.mds.common.communication.EntryHandler;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
 
 /**
  * 
@@ -31,6 +32,33 @@ public class MdsServer {
 		wsServer.start();
 		
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
+		
+		List<String> keys = new Vector<String>();
+		keys.add("MDS");
+		keys.add("Players");
+		WhiteboardEntry value = new WhiteboardEntry((Boolean)false, "all");
+		
+		//WhiterboardUpdateObject wObj = new WhiterboardUpdateObject(keys, value);
+		WhiterboardUpdateObject wObj = null;
+		
+		String message = null;
+		String path = "MDS,Player,Object";
+		String[] parts = path.split(",");
+		System.out.println(Arrays.toString(parts));
+		
+		message = EntryHandler.toJson(keys, value);
+		
+		System.out.println(message);
+		
+		wObj = EntryHandler.toObject(message);
+		
+		System.out.println(wObj);
+		
+		message = EntryHandler.toJson(wObj.getKeys(), wObj.getValue());
+		
+		System.out.println(message);
+		
+
 		
 		
 		

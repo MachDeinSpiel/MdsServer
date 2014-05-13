@@ -1,17 +1,10 @@
 package de.hsbremen.mds.server.domain;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
-
-import javax.management.timer.Timer;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
@@ -19,10 +12,12 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
+import de.hsbremen.mds.common.communication.EntryHandler;
+import de.hsbremen.mds.common.exception.UnknownWhiteboardTypeException;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
-import de.hsbremen.mds.common.valueobjects.MdsImage;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
 
 /**
  * 
@@ -65,13 +60,19 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		
+		WhiterboardUpdateObject wObj = EntryHandler.toObject(message);
 		 
+		
+		/*
 		for(Entry<Integer, WebSocket> entry: this.clients.entrySet()){
 			  if (!entry.getValue().equals(conn)) {
 				  entry.getValue().send(message);
 			  }
 			
 		}
+		*/
+			
+		mdsServerInterpreter.onWhiteboardUpdate(conn, wObj.getKeys(), wObj.getValue());
 		
 		System.out.println(conn + ": " + message);
 		
@@ -115,44 +116,28 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.sendToAll(json.toString());
 	}
 
+
 	@Override
-	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
-		// TODO Auto-generated method stub
+	/**
+	 * Wird vom Interpreter aufgerufen wenn es ein WhiteboardUpdate gibt
+	 * @prama WebSocket conn - Client dem das Update mitgeteilt werden soll
+	 * @prama List<String> keys - Pfad zum WhiteboardEntry
+	 * @prama WhiteboardEntry entry - der WhiteboardEntry der dem Client mitgeteilt werden soll
+	 */
+	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
+		
+		String message = null;
+		try {
+			message = EntryHandler.toJson(keys, entry);
+		} catch (UnknownWhiteboardTypeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		conn.send(message);
 		
 	}
 
-	@Override
-	public void onFullWhiteboardUpdate(Whiteboard newWhiteboard) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onWhiteboardUpdate(WebSocket conn, String value, String visibillity, String... keys) {
-		
-		JSONObject json = new JSONObject();
-		
-		
-		json.put("value", value);
-		json.put("visibillity", visibillity);
-		json.put("keys", arrayToString(keys, "."));
-		
-		conn.send(json.toString());
-		
-	}
-	
-	// Convert an array of strings to one string.
-	// Put the 'separator' string between each element
-	public static String arrayToString(String[] stringArray, String separator) {
-	    String result = "";
-	    if (stringArray.length > 0) {
-	        result = stringArray[0];    // start with the first element
-	        for (int i=1; i<stringArray.length; i++) {
-	            result = result + separator + stringArray[i];
-	        }
-	    }
-	    return result;
-	}
 	
 	
 	// Bot zum Senden zufälliger Koordninaten über WS
