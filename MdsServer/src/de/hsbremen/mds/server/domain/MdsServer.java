@@ -24,7 +24,7 @@ public class MdsServer {
 		InputStream is = null;
 		
 		try {
-			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/BombDefuser_Client.json").openStream();
+			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/BombDefuser_Server.json").openStream();
 		} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -41,7 +41,7 @@ public class MdsServer {
 		// Temporäre Datei anlegen
 		File json = null;
 		try {
-			json = File.createTempFile("TourismApp", ".json");
+			json = File.createTempFile("App", ".json");
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -57,7 +57,7 @@ public class MdsServer {
 			String t = "";
 
 			while ((t = br.readLine()) != null) {
-				System.out.println(t);
+				//System.out.println(t);
 				writer.write(t);
 			}
 
@@ -70,10 +70,10 @@ public class MdsServer {
 
 		// Überprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("Geklappt");
+			System.out.println("JSON Einlesen erfolgreich.");
 			System.out.println(json.length());
 		} else {
-			System.out.println("Nicht geklappt");
+			System.out.println("JSON Einlesen fehlgeschlagen");
 		}
 
 		return json;
