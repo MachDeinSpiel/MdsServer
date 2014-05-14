@@ -1,5 +1,6 @@
 package de.hsbremen.mds.server.domain;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,22 +15,23 @@ import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+import de.hsbremen.mds.server.parser.ParserServer;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
 	//Test Whiteboard
 	Whiteboard whiteboard = new Whiteboard();
 	//---------------------------------
 	private MdsComServer comServer;
+
 	//Websockets Hashmap...
 	private HashMap<String,WebSocket> clients = new HashMap<String, WebSocket>();
 
 	
-	public MdsServerInterpreter (MdsComServer mdsComServer) {
+	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
 		this.comServer = mdsComServer;
+		ParserServer parServ = new ParserServer(file);
 		
 	}
-
-	
 
 	@Override
 	/**

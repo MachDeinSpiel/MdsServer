@@ -1,20 +1,84 @@
 package de.hsbremen.mds.server.domain;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.java_websocket.WebSocketImpl;
-import org.json.JSONObject;
-
-import de.hsbremen.mds.common.communication.EntryHandler;
-import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
-import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 /**
  * 
  */
 public class MdsServer {
+	
+	private static File jsonEinlesen() {
+
+		InputStream is = null;
+		
+		try {
+			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/BombDefuser_Client.json").openStream();
+		} catch (MalformedURLException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+
+		// InputStream is =
+		// getInputStreamFromUrl("http://195.37.176.178:1388/MDSS-0.1/api/appinfo/2.xml");
+		// InputStream is =
+		// getInputStreamFromUrl("http://195.37.176.178:1388/MDSS-0.1/api/appinfo/3");
+
+		// Temporäre Datei anlegen
+		File json = null;
+		try {
+			json = File.createTempFile("TourismApp", ".json");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+
+		try {
+			// Inputstream zum einlesen der Json
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+			// Json wird zeilenweise eingelesn uns in das File json geschrieben
+			FileWriter writer = new FileWriter(json, true);
+
+			String t = "";
+
+			while ((t = br.readLine()) != null) {
+				System.out.println(t);
+				writer.write(t);
+			}
+
+			writer.flush();
+			writer.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		// Überprüfung, ob es geklappt hat
+		if (json.exists()) {
+			System.out.println("Geklappt");
+			System.out.println(json.length());
+		} else {
+			System.out.println("Nicht geklappt");
+		}
+
+		return json;
+
+	}
 	
 	public static void main(String[] args) throws Exception {
 			  
@@ -26,39 +90,17 @@ public class MdsServer {
 		} catch (Exception ex) {
 			
 		}
+		
+		File file = jsonEinlesen();
+		
+
 				
-		MdsComServer wsServer = new MdsComServer(port);
+		MdsComServer wsServer = new MdsComServer(port, file);
 
 		wsServer.start();
 		
 		System.out.println("MdsServer WebSocket started on port: " + wsServer.getPort());
 		
-		List<String> keys = new Vector<String>();
-		keys.add("MDS");
-		keys.add("Players");
-		WhiteboardEntry value = new WhiteboardEntry((Boolean)false, "all");
-		
-		//WhiterboardUpdateObject wObj = new WhiterboardUpdateObject(keys, value);
-		WhiterboardUpdateObject wObj = null;
-		
-		String message = null;
-		String path = "MDS,Player,Object";
-		String[] parts = path.split(",");
-		System.out.println(Arrays.toString(parts));
-		
-		message = EntryHandler.toJson(keys, value);
-		
-		System.out.println(message);
-		
-		wObj = EntryHandler.toObject(message);
-		
-		System.out.println(wObj);
-		
-		message = EntryHandler.toJson(wObj.getKeys(), wObj.getValue());
-		
-		System.out.println(message);
-		
-
 		
 		
 		

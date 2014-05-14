@@ -1,5 +1,6 @@
 package de.hsbremen.mds.server.domain;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -20,11 +21,12 @@ import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private MdsServerInterpreter mdsServerInterpreter = new MdsServerInterpreter(this);
+	private MdsServerInterpreter mdsServerInterpreter;
 		
 	
-	public MdsComServer(int port) throws UnknownHostException {
+	public MdsComServer(int port, File file) throws UnknownHostException {
 		super(new InetSocketAddress(port) );
+		this.mdsServerInterpreter = new MdsServerInterpreter(this, file);
 	}
 
 	public MdsComServer(InetSocketAddress address) {
