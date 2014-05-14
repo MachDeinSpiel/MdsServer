@@ -138,6 +138,7 @@ public class ParserServer {
 	}
 	*/
 	public void writeValue(JSONObject jo, String name) {
+		System.out.println(jo.toJSONString());
 		if(jo.get("params") != null || jo.get("useAction") != null) {
 			if(jo.get("params") != null)
 				writeValue((JSONObject) jo.get("params"), jo.get("name").toString());

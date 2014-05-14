@@ -57,6 +57,15 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		key = keys.toArray(key);
 		this.whiteboard.setAttribute(value, key);
 	}
+	
+	public void onFullWhiteboardUpdate(WebSocket conn) {
+		
+		for (Entry<String, WhiteboardEntry> mapEntry : this.whiteboard.entrySet()) {
+			
+			//this.comServer.sendUpdate(mapEntry.getKey(), mapEntry.getValue());
+		}
+		
+	}
 
 
 	@Override
