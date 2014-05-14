@@ -24,6 +24,7 @@
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.0/css/jquery.dataTables.css">
     <link rel="stylesheet" type="text/css" href="dropDown.css" />
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script type="text/javascript" src="Whiteboard.js"></script>
     <script type="text/javascript" src="map.js"></script>
     <script type="text/javascript" src="prototype.js"></script>
     <script type="text/javascript" src="dropDownMenu.js"></script>
@@ -42,32 +43,26 @@
             }
 
             var ws;
-            var longitude;
-            var latitude;
-            var id;
+        	this.whiteboard = new Whiteboard();
 
+
+            //Aufbau der Websocketverbindung
                 ws = new WebSocket("ws://feijnox.no-ip.org:8000");
                 ws.onopen = function() {
                     log("[WebSocket#onopen]\n");
                 }
                 ws.onmessage = function(e) {
                     log("[WebSocket#onmessage] Message: '" + e.data + "'\n");
-                    var message = '{"Latitude":52.28428,"Longitude":9.88248,"ClientID":26}';
+                    var message = e.data;
                     if(message.startsWith("{")){
 	   					obj = JSON.parse(message);
-	   					
-	   					if(obj.Latitude!=null){
-	   						latitude=obj.Latitude;
+	   					if(!obj.path === null){
+	   						var changings = obj.path;
 	   					}
-	   					if(obj.Longitude!=null){
-	   						longitude=obj.Longitude;
-	   					}
-	   					if(obj.ClientID!=null){
-	   						id=obj.ClientID;
-	   					}
-	       				update(longitude, latitude, id);
+		
+	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
+	       				this. whiteboard = update(changings, this.whiteboard);
        				}	
-       				console.log(longitude); 
    				}
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");

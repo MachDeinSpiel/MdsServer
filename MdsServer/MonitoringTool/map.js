@@ -3,68 +3,10 @@
 	var bremen = new google.maps.LatLng(53.05437, 8.78788);
 	var player= 1;
 	var players=[];
-	var playersDiv=[];
+
 	
-	function bound(value, opt_min, opt_max) {
-	  if (opt_min != null) value = Math.max(value, opt_min);
-	  if (opt_max != null) value = Math.min(value, opt_max);
-	  return value;
-	}
-	
-	function degreesToRadians(deg) {
-	  return deg * (Math.PI / 180);
-	}
-	
-	function radiansToDegrees(rad) {
-	  return rad / (Math.PI / 180);
-	}
-	
-	/** @constructor */
-	function MercatorProjection() {
-	  this.pixelOrigin_ = new google.maps.Point(TILE_SIZE / 2,
-	      TILE_SIZE / 2);
-	  this.pixelsPerLonDegree_ = TILE_SIZE / 360;
-	  this.pixelsPerLonRadian_ = TILE_SIZE / (2 * Math.PI);
-	}
-	
-	MercatorProjection.prototype.fromLatLngToPoint = function(latLng,
-	    opt_point) {
-	  var me = this;
-	  var point = opt_point || new google.maps.Point(0, 0);
-	  var origin = me.pixelOrigin_;
-	
-	  point.x = origin.x + latLng.lng() * me.pixelsPerLonDegree_;
-	
-	  // Truncating to 0.9999 effectively limits latitude to 89.189. This is
-	  // about a third of a tile past the edge of the world tile.
-	  var siny = bound(Math.sin(degreesToRadians(latLng.lat())), -0.9999,
-	      0.9999);
-	  point.y = origin.y + 0.5 * Math.log((1 + siny) / (1 - siny)) *
-	      -me.pixelsPerLonRadian_;
-	  return point;
-	};
-	
-	MercatorProjection.prototype.fromPointToLatLng = function(point) {
-	  var me = this;
-	  var origin = me.pixelOrigin_;
-	  var lng = (point.x - origin.x) / me.pixelsPerLonDegree_;
-	  var latRadians = (point.y - origin.y) / -me.pixelsPerLonRadian_;
-	  var lat = radiansToDegrees(2 * Math.atan(Math.exp(latRadians)) -
-	      Math.PI / 2);
-	  return new google.maps.LatLng(lat, lng);
-	};
-	
-	function createInfoWindowContent(marker) {
-	  var numTiles = 1 << map.getZoom();
-	  var projection = new MercatorProjection();
-	  var worldCoordinate = projection.fromLatLngToPoint(bremen);
-	  var pixelCoordinate = new google.maps.Point(
-	      worldCoordinate.x * numTiles,
-	      worldCoordinate.y * numTiles);
-	  var tileCoordinate = new google.maps.Point(
-	      Math.floor(pixelCoordinate.x / TILE_SIZE),
-	      Math.floor(pixelCoordinate.y / TILE_SIZE));
-	
+	// Spielerinformationsfenster initialisieren
+	function createInfoWindowContent(marker) {	
 	  return [
 	     marker.title,
 	    'Position: ' + marker.position,
@@ -73,28 +15,42 @@
 		
 	  ].join('<br>');
 	}
-	function update(longitude, latitude, id){
-		setMarker(longitude, latitude, id);
-		setDropDown();
+	
+	function update(data, whiteboard){
+		var whiteboard = this.whiteboard;
+		updateWhiteboard(data, whiteboard);
+		updateMarker(this.whiteboard);
+		
+		return whiteboard;
 	
 	}
-	function setMarker(longitude, latitude, id) {
-		var myLatlng = new google.maps.LatLng(latitude, longitude);
-		for(var i = 0; i<players.length; i++){
-			if(players[i].id == id){
+	//funktion zum updaten des Whiteboards. 
+	function updateWhiteboard(changings){
+	var value = this.whiteboard.getValue(changings);
+	var keys = changings.split(',');
+	
+	this.whiteboard.setAttribute(this.whiteboard, keys, value);
+	console.log(whiteboard);
+	}
+	// setzen der Spielermarker
+	function updateMarker(whiteboard) {
+		var totalmarkers  = whiteboard.Players;
+		for (i = 0; i < totalmarkers; i++) {
+			var myLatlng = new google.maps.LatLng(totalmarkers[i].latitude, totalmarkers[i].longitude);
+			
+		    if (players[i] == null) { // Create your marker here
+		        players[i] = new new google.maps.Marker({
+		        	position: myLatlng,
+		        	map: map,
+		        	animation: google.maps.Animation.DROP,
+		        	title: 'Player ' + totalmarkers[i].id.toString()   
+		        });
+			    alert('Neuer Spieler: ' + players[i].title);
+		        
+		    } else { // Update your marker here
 				players[i].setPosition(myLatlng);
-				break;
-			}
+		    }
 		}
-		  var myLatlng = new google.maps.LatLng(latitude, longitude);
-		   var marker =  new google.maps.Marker({
-				position:myLatlng,
-				map:map,
-			    animation: google.maps.Animation.DROP,
-				title: 'Player ' +id.toString()
-			});
-			players.push(marker);
-		    alert('Neuer Spieler: ' + marker.title);
 			var divOptions = {
 				 gmap: map,
 				 name: marker.title,
@@ -104,18 +60,20 @@
 				     centerPlayer(marker, map);
 				 }
 			}
-			var optionDiv1 = new optionDiv(divOptions);
-			playersDiv.push(optionDiv1);
-			google.maps.event.addListener(marker, 'click', function() {
+
+			for(var i = 0; i < players.length; i++){
+				google.maps.event.addListener(marker, 'click', function() {
 			    
-				var coordInfoWindow = new google.maps.InfoWindow();
-				coordInfoWindow.setContent(createInfoWindowContent(marker));
-				coordInfoWindow.open(map, marker);
-			});
+					var coordInfoWindow = new google.maps.InfoWindow();
+					coordInfoWindow.setContent(createInfoWindowContent(players[i]));
+					coordInfoWindow.open(map, players[i]);
+				});
+			}
 
 	
 	
 	}
+	// Inititialisierung des Dropdown Menüs auf der Karte
 	function setDropDown(){
       var sep = new separator();
 	      
@@ -197,6 +155,5 @@
 
               
     }
-	
-	
-	google.maps.event.addDomListener(window, 'load', initialize);
+
+google.maps.event.addDomListener(window, 'load', initialize);
