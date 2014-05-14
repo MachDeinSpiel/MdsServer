@@ -13,7 +13,6 @@ import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
-import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServer;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
@@ -30,6 +29,8 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		this.comServer = mdsComServer;
 		ParserServer parServ = new ParserServer(file);
 		this.whiteboard = parServ.getWhiteboard();
+		
+		// Muss fuer Test hinzugefuegt werden:
 		this.whiteboard.setAttribute(new WhiteboardEntry(new Whiteboard(), "all"), "Players");
 	}
 
@@ -43,14 +44,16 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		// Allen anderen Clients das Update schicken
 		for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-			if (mapEntry.getValue() != conn) {
+			if (!mapEntry.getValue().equals(conn)) {
 				this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
 			}
 		}
 		
 	}
 
-
+	/**
+	 * Lokales WB aktualisieren
+	 */
 	@Override
 	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
 		String[] key = new String[keys.size()];
@@ -58,6 +61,15 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		this.whiteboard.setAttribute(value, key);
 	}
 	
+	/**
+	 * Client kompletten WB senden
+	 * 
+	 * TODO: Rekursion pruefen
+	 * 
+	 * @param conn - der Client
+	 * @param wb - das WB
+	 * @param keys - Key zum WB
+	 */
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
 		
 		for (Entry<String, WhiteboardEntry> mapEntry : this.whiteboard.entrySet()) {
@@ -90,7 +102,8 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			keys.add("Players");
 			keys.add(playerName);
 			
-			
+			// TODO: laeuft noch nicht :-(
+			// this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
 			this.onWhiteboardUpdate(conn, keys, player);
 			
 			return true;
