@@ -3,10 +3,8 @@ package de.hsbremen.mds.server.domain;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
-import java.util.regex.Pattern;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -15,6 +13,7 @@ import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServer;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
@@ -30,7 +29,8 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
 		this.comServer = mdsComServer;
 		ParserServer parServ = new ParserServer(file);
-		
+		this.whiteboard = parServ.getWhiteboard();
+		this.whiteboard.setAttribute(new WhiteboardEntry(new Whiteboard(), "all"), "Players");
 	}
 
 	@Override
@@ -58,11 +58,16 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		this.whiteboard.setAttribute(value, key);
 	}
 	
-	public void onFullWhiteboardUpdate(WebSocket conn) {
+	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
 		
 		for (Entry<String, WhiteboardEntry> mapEntry : this.whiteboard.entrySet()) {
-			
-			//this.comServer.sendUpdate(mapEntry.getKey(), mapEntry.getValue());
+			if (mapEntry.getValue().value instanceof Whiteboard) {
+				keys.add(mapEntry.getKey());
+				this.onFullWhiteboardUpdate(conn, (Whiteboard) mapEntry.getValue().value, keys);
+			} else {
+				this.comServer.sendUpdate(conn, keys, mapEntry.getValue());
+				keys = new Vector<String>();
+			}
 		}
 		
 	}
@@ -93,4 +98,5 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		return false;
 	}
+	
 }
