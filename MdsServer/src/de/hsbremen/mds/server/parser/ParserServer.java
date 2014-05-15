@@ -13,8 +13,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
-import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+import de.hsbremen.mds.common.interfaces.InterpreterInterface;
+import de.hsbremen.mds.common.valueobjects.statemachine.MdsExhibit;
 
 public class ParserServer {
 	
@@ -138,7 +140,6 @@ public class ParserServer {
 	}
 	*/
 	public void writeValue(JSONObject jo, String name) {
-		System.out.println(jo.toJSONString());
 		if(jo.get("params") != null || jo.get("useAction") != null) {
 			if(jo.get("params") != null)
 				writeValue((JSONObject) jo.get("params"), jo.get("name").toString());
@@ -150,11 +151,13 @@ public class ParserServer {
 				}
 			}
 		}
-		HashMap<String, Object> paramsHM = new HashMap<String, Object>();
+		//HashMap<String, Object> paramsHM = new HashMap<String, Object>();
+		Whiteboard paramsHM = new Whiteboard();
 		Set<String> keySet = jo.keySet();
 		for (String key : keySet){
-			Object value = jo.get(key);
-			paramsHM.put(key, value);
+			String value = jo.get(key).toString();
+			WhiteboardEntry wbe = new WhiteboardEntry(value, "none");
+			paramsHM.setAttribute(wbe, key);
 		}
 		WhiteboardEntry wbe = new WhiteboardEntry(paramsHM, "none");
 		wb.setAttribute(wbe, name); 
