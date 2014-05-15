@@ -94,21 +94,22 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	}
 	
 	private void displayWhiteboard(Whiteboard wb, List<String> keys) {
-		System.out.println(wb.getClass().toString());
 		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
-			System.out.println(mapEntry.getValue().value.getClass().toString());
-			if (mapEntry.getValue().value instanceof HashMap) {
+			if (mapEntry.getValue().value instanceof Whiteboard) {
 				System.out.println("Whiteboard");
 				keys.add(mapEntry.getKey());
-				this.displayWhiteboard((Whiteboard)(HashMap<String, WhiteboardEntry>) mapEntry.getValue().value, keys);
+				this.displayWhiteboard((Whiteboard) mapEntry.getValue().value, keys);
 			} else {
 				
 				String path = "";
 				Iterator<String> it = keys.iterator();
-				while (it.hasNext()) {
-					path = path + it.next();
+				if(it.hasNext()){
+					path = it.next();
+					while (it.hasNext()) {
+						path = path + "." + it.next();
+					}
 				}
-				System.out.println("Pfad: " + path + " Value:" + mapEntry.getValue().value);
+				System.out.println("PATH: " + path + " VALUE:" + mapEntry.getValue().value);
 				keys = new Vector<String>();
 			}
 		}

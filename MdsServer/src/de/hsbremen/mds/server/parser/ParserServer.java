@@ -104,7 +104,7 @@ public class ParserServer {
 			*/
 			// Ausgabe
 			
-			System.out.println(wb.toString());
+//			System.out.println(wb.toString());
 		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
