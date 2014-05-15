@@ -3,8 +3,11 @@
 	var bremen = new google.maps.LatLng(53.05437, 8.78788);
 	var player= 1;
 	var players=[];
+	var items = [];
+	var playersDiv = [];
+    var dropDown1;
+    this.whiteboard = new Whiteboard();
 
-	
 	// Spielerinformationsfenster initialisieren
 	function createInfoWindowContent(marker) {	
 	  return [
@@ -16,21 +19,22 @@
 	  ].join('<br>');
 	}
 	
-	function update(data, whiteboard){
-		var whiteboard = this.whiteboard;
+	function update(data){
+		//var whiteboard = qwhiteboard;
 		updateWhiteboard(data, whiteboard);
-		updateMarker(this.whiteboard);
+		updateMarker(whiteboard);
+		updateDropDown(whiteboard);
 		
 		return whiteboard;
 	
 	}
 	//funktion zum updaten des Whiteboards. 
-	function updateWhiteboard(changings){
-	var value = this.whiteboard.getValue(changings);
-	var keys = changings.split(',');
+	function updateWhiteboard(changings, whiteboard){
+		var value = whiteboard.getValue(changings);
+		var keys = changings.split(',');
 	
-	this.whiteboard.setAttribute(this.whiteboard, keys, value);
-	console.log(whiteboard);
+		whiteboard.setAttribute(whiteboard, keys, value);
+		console.log(whiteboard);
 	}
 	// setzen der Spielermarker
 	function updateMarker(whiteboard) {
@@ -39,7 +43,7 @@
 			var myLatlng = new google.maps.LatLng(totalmarkers[i].latitude, totalmarkers[i].longitude);
 			
 		    if (players[i] == null) { // Create your marker here
-		        players[i] = new new google.maps.Marker({
+		        players[i] = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
@@ -51,32 +55,67 @@
 				players[i].setPosition(myLatlng);
 		    }
 		}
-			var divOptions = {
-				 gmap: map,
-				 name: marker.title,
-				 title: "Pan to Player",
-				 id: "mapOpt",
-				 action: function(){
-				     centerPlayer(marker, map);
-				 }
-			}
-
-			for(var i = 0; i < players.length; i++){
-				google.maps.event.addListener(marker, 'click', function() {
+		playersDiv = null;
+		for(var i = 0; i < players.length; i++){
+			google.maps.event.addListener(marker, 'click', function() {
 			    
-					var coordInfoWindow = new google.maps.InfoWindow();
-					coordInfoWindow.setContent(createInfoWindowContent(players[i]));
-					coordInfoWindow.open(map, players[i]);
-				});
-			}
+				var coordInfoWindow = new google.maps.InfoWindow();
+				coordInfoWindow.setContent(createInfoWindowContent(players[i]));
+				coordInfoWindow.open(map, players[i]);
+			});
+
+			var divOptions = {
+					 gmap: map,
+					 name: players[i].title,
+					 title: "Pan to Player",
+					 id: "mapOpt",
+					 action: function(){
+					     centerPlayer(players[i], map);
+					 }
+				}
+			playersDiv.push(divOptions);
+
+		}
 
 	
 	
 	}
+	
+	//Setzen der Items auf der Karte
+	function updateItems(whiteboard) {
+		var totalItems  = whiteboard.Items;
+		for (i = 0; i < totalItems; i++) {
+			var myLatlng = new google.maps.LatLng(totalItems[i].latitude, totalItems[i].longitude);
+			
+		    if (items[i] == null) { // Create your marker here
+		        items[i] = new google.maps.Marker({
+		        	position: myLatlng,
+		        	map: map,
+		        	animation: google.maps.Animation.DROP,
+		        	title: 'Item ' + totalItems[i].name.toString(),
+		        	icon: 'images/bomb.png'
+		        });
+		        
+		    } else { // Update your marker here
+				items[i].setPosition(myLatlng);
+		    }
+		}
+	//	playersDiv = null;
+		for(var i = 0; i < items.length; i++){
+			google.maps.event.addListener(marker, 'click', function() {
+			    
+				var coordInfoWindow = new google.maps.InfoWindow();
+				coordInfoWindow.setContent(createInfoWindowContent(items[i]));
+				coordInfoWindow.open(map, items[i]);
+			});	
+	
+		}
+	}
 	// Inititialisierung des Dropdown Menüs auf der Karte
-	function setDropDown(){
+	function updateDropDown(whiteboard){
+	dropDown1 = null;
       var sep = new separator();
-	      
+      if(!(playersDiv == null)){
 	      //put them all together to create the drop down       
 	      var ddDivOptions = {
 	      	items: playersDiv,
@@ -94,9 +133,9 @@
 	      		dropDown: dropDownDiv 
 	      }
 	      
-	    var dropDown1 = new dropDownControl(dropDownOptions);     
+	    dropDown1 = new dropDownControl(dropDownOptions);     
 
-		
+      }
 	}
 	//Sets the map on all markers in the array.
 	function setAllMap(map) {
@@ -147,13 +186,11 @@
       		name: 'Show all Players',
       		position: google.maps.ControlPosition.TOP_RIGHT,
       		action: function(){
-      			showPlayers();
-      			
+      			showPlayers();    			
       		}
       }
       var button1 = new buttonControl(buttonOptions);
-
-              
+            
     }
 
 google.maps.event.addDomListener(window, 'load', initialize);

@@ -54,15 +54,15 @@
                 ws.onmessage = function(e) {
                     log("[WebSocket#onmessage] Message: '" + e.data + "'\n");
                     var message = e.data;
-                    if(message.startsWith("{")){
-	   					obj = JSON.parse(message);
-	   					if(!obj.path === null){
-	   						var changings = obj.path;
-	   					}
+                   // if(message.startsWith("{")){
+	   					//obj = JSON.parse(message);
+	   					//if(!obj.path === null){
+	   						var changings = 'Players,Player2,latitude,53.05437'; //obj.path;
+	   					//}
 		
 	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
-	       				this. whiteboard = update(changings, this.whiteboard);
-       				}	
+	       				update(changings);
+       					
    				}
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");

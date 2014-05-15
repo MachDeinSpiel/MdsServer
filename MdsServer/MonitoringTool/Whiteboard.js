@@ -17,7 +17,6 @@ function Whiteboard() {
 		// Returns: the last object in the hierarchy
 		    // If a value is given, remove the last name and keep it for later:
 		    var lastName = arguments.length === 3 ? keys.pop() : false;
-
 		    // Walk the hierarchy, creating new objects where needed.
 		    // If the lastName was removed, then the last object is not set yet:
 		    for( var i = 0; i < keys.length; i++ ) {
