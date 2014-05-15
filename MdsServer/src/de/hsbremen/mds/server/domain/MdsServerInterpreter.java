@@ -2,6 +2,7 @@ package de.hsbremen.mds.server.domain;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -11,6 +12,7 @@ import org.java_websocket.handshake.ClientHandshake;
 
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
+import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.server.parser.ParserServer;
@@ -30,8 +32,15 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		ParserServer parServ = new ParserServer(file);
 		this.whiteboard = parServ.getWhiteboard();
 		
+		this.displayWhiteboard(this.whiteboard, new Vector<String>());
+		
 		// Muss fuer Test hinzugefuegt werden:
-		this.whiteboard.setAttribute(new WhiteboardEntry(new Whiteboard(), "all"), "Players");
+		try {
+			this.whiteboard.setAttribute(new WhiteboardEntry(new Whiteboard(), "all"), "Players");
+		} catch (InvalidWhiteboardEntryException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -72,7 +81,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
 		
-		for (Entry<String, WhiteboardEntry> mapEntry : this.whiteboard.entrySet()) {
+		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
 			if (mapEntry.getValue().value instanceof Whiteboard) {
 				keys.add(mapEntry.getKey());
 				this.onFullWhiteboardUpdate(conn, (Whiteboard) mapEntry.getValue().value, keys);
@@ -82,6 +91,27 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			}
 		}
 		
+	}
+	
+	private void displayWhiteboard(Whiteboard wb, List<String> keys) {
+		System.out.println(wb.getClass().toString());
+		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
+			System.out.println(mapEntry.getValue().value.getClass().toString());
+			if (mapEntry.getValue().value instanceof HashMap) {
+				System.out.println("Whiteboard");
+				keys.add(mapEntry.getKey());
+				this.displayWhiteboard((Whiteboard)(HashMap<String, WhiteboardEntry>) mapEntry.getValue().value, keys);
+			} else {
+				
+				String path = "";
+				Iterator<String> it = keys.iterator();
+				while (it.hasNext()) {
+					path = path + it.next();
+				}
+				System.out.println("Pfad: " + path + " Value:" + mapEntry.getValue().value);
+				keys = new Vector<String>();
+			}
+		}
 	}
 
 
@@ -93,7 +123,12 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
 		
 		if (player == null) {
-			player = new WhiteboardEntry(playerName, "all");
+			try {
+				player = new WhiteboardEntry(playerName, "all");
+			} catch (InvalidWhiteboardEntryException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			
 			this.clients.put("Players," + playerName, conn);
