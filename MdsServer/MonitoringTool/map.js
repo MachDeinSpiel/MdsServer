@@ -2,13 +2,16 @@
 	var TILE_SIZE = 256;
 	var bremen = new google.maps.LatLng(53.05437, 8.78788);
 	var player= 1;
+	// array for player marker
 	var players=[];
+	// array for item marker
 	var items = [];
+	// array for DropDown information
 	var playersDiv = [];
     var dropDown1;
-    this.whiteboard = new Whiteboard();
+ // this.whiteboard = new Whiteboard();
 
-	// Spielerinformationsfenster initialisieren
+	// initializing player information window
 	function createInfoWindowContent(marker) {	
 	  return [
 	     marker.title,
@@ -19,8 +22,9 @@
 	  ].join('<br>');
 	}
 	
-	function update(data){
-		//var whiteboard = qwhiteboard;
+	// major update function
+	function update(data, qwhiteboard){
+		var whiteboard = qwhiteboard;
 		updateWhiteboard(data, whiteboard);
 		updateMarker(whiteboard);
 		updateDropDown(whiteboard);
@@ -28,21 +32,23 @@
 		return whiteboard;
 	
 	}
-	//funktion zum updaten des Whiteboards. 
+	
+	//updating Whiteboard
 	function updateWhiteboard(changings, whiteboard){
 		var value = whiteboard.getValue(changings);
 		var keys = changings.split(',');
 	
 		whiteboard.setAttribute(whiteboard, keys, value);
-		console.log(whiteboard);
+		console.log(this.whiteboard);
 	}
-	// setzen der Spielermarker
+	
+	// updating player markers
 	function updateMarker(whiteboard) {
 		var totalmarkers  = whiteboard.Players;
 		for (i = 0; i < totalmarkers; i++) {
 			var myLatlng = new google.maps.LatLng(totalmarkers[i].latitude, totalmarkers[i].longitude);
 			
-		    if (players[i] == null) { // Create your marker here
+		    if (players[i] == null) { // Create new marker if player does not already exists
 		        players[i] = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
@@ -51,11 +57,14 @@
 		        });
 			    alert('Neuer Spieler: ' + players[i].title);
 		        
-		    } else { // Update your marker here
+		    } else { // Update the player marker if already exists
 				players[i].setPosition(myLatlng);
 		    }
 		}
+		
+		
 		playersDiv = null;
+		// initializing clicklistener for player markers
 		for(var i = 0; i < players.length; i++){
 			google.maps.event.addListener(marker, 'click', function() {
 			    
@@ -76,18 +85,15 @@
 			playersDiv.push(divOptions);
 
 		}
-
-	
-	
 	}
 	
-	//Setzen der Items auf der Karte
+	// Updating the itemmarkers
 	function updateItems(whiteboard) {
 		var totalItems  = whiteboard.Items;
 		for (i = 0; i < totalItems; i++) {
 			var myLatlng = new google.maps.LatLng(totalItems[i].latitude, totalItems[i].longitude);
 			
-		    if (items[i] == null) { // Create your marker here
+		    if (items[i] == null) { // Create new marker if not already exist
 		        items[i] = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
@@ -96,11 +102,12 @@
 		        	icon: 'images/bomb.png'
 		        });
 		        
-		    } else { // Update your marker here
+		    } else { // update the marker
 				items[i].setPosition(myLatlng);
 		    }
 		}
-	//	playersDiv = null;
+
+		
 		for(var i = 0; i < items.length; i++){
 			google.maps.event.addListener(marker, 'click', function() {
 			    
@@ -111,32 +118,34 @@
 	
 		}
 	}
-	// Inititialisierung des Dropdown Menüs auf der Karte
+	
+	// update the dropDown menu on the map
 	function updateDropDown(whiteboard){
-	dropDown1 = null;
-      var sep = new separator();
-      if(!(playersDiv == null)){
-	      //put them all together to create the drop down       
-	      var ddDivOptions = {
-	      	items: playersDiv,
-	      	id: "myddOptsDiv"        		
+		dropDown1 = null;
+	    var sep = new separator();
+	      if(!(playersDiv == null)){
+		      //put them all together to create the drop down       
+		      var ddDivOptions = {
+		      	items: playersDiv,
+		      	id: "myddOptsDiv"        		
+		      }
+	
+		      var dropDownDiv = new dropDownOptionsDiv(ddDivOptions);               
+		              
+		      var dropDownOptions = {
+			      gmap: map,
+			      name: 'Center Player',
+			      id: 'ddControl',
+			      title: 'A custom drop down select with mixed elements',
+			      position: google.maps.ControlPosition.TOP_RIGHT,
+			      dropDown: dropDownDiv 
+		      }
+		      
+		      dropDown1 = new dropDownControl(dropDownOptions);     
+	
 	      }
-	      //alert(ddDivOptions.items[1]);
-	      var dropDownDiv = new dropDownOptionsDiv(ddDivOptions);               
-	              
-	      var dropDownOptions = {
-	      		gmap: map,
-	      		name: 'Center Player',
-	      		id: 'ddControl',
-	      		title: 'A custom drop down select with mixed elements',
-	      		position: google.maps.ControlPosition.TOP_RIGHT,
-	      		dropDown: dropDownDiv 
-	      }
-	      
-	    dropDown1 = new dropDownControl(dropDownOptions);     
-
-      }
 	}
+	
 	//Sets the map on all markers in the array.
 	function setAllMap(map) {
 	  for (var i = 0; i < players.length; i++) {
@@ -159,38 +168,43 @@
 	  players = [];
 	}
 	
+	// focus on the playermarker
 	function centerPlayer(player, map){
 		map.panTo(player.position);
 	}
 	
-	function initialize() {
-	  var mapOptions = {
-	    zoom: 12,
-	    center: bremen
-	  };
 	
-	  map = new google.maps.Map(document.getElementById('map-canvas'),
-	      mapOptions);
-      var buttonOptions = {
+	// initializing the actual map
+	function initialize() {
+		var mapOptions = {
+			zoom: 12,
+			center: bremen
+		};
+	
+		map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+		
+		// Hide player button
+		var buttonOptions = {
       		gmap: map,
       		name: 'Hide all Players',
       		position: google.maps.ControlPosition.TOP_RIGHT,
       		action: function(){
       			clearPlayers();
       		}
-      }
-      var button1 = new buttonControl(buttonOptions);
+		}
+		var button1 = new buttonControl(buttonOptions);
 
-      var buttonOptions = {
-      		gmap: map,
-      		name: 'Show all Players',
-      		position: google.maps.ControlPosition.TOP_RIGHT,
-      		action: function(){
-      			showPlayers();    			
-      		}
-      }
-      var button1 = new buttonControl(buttonOptions);
-            
-    }
+		// show player button
+	    var buttonOptions = {
+	    	gmap: map,
+	      	name: 'Show all Players',
+	      	position: google.maps.ControlPosition.TOP_RIGHT,
+	      	action: function(){
+	      		showPlayers();    			
+	      	}
+	   }
+	   var button1 = new buttonControl(buttonOptions);
+	            
+	}
 
 google.maps.event.addDomListener(window, 'load', initialize);

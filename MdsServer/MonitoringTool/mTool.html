@@ -50,20 +50,22 @@
                 ws = new WebSocket("ws://feijnox.no-ip.org:8000");
                 ws.onopen = function() {
                     log("[WebSocket#onopen]\n");
+
                 }
                 ws.onmessage = function(e) {
                     log("[WebSocket#onmessage] Message: '" + e.data + "'\n");
                     var message = e.data;
-                   // if(message.startsWith("{")){
-	   					//obj = JSON.parse(message);
-	   					//if(!obj.path === null){
-	   						var changings = 'Players,Player2,latitude,53.05437'; //obj.path;
-	   					//}
+                    if(message.startsWith("{")){
+	   					obj = JSON.parse(message);
+	   					if(!obj.path === null){
+	   						var changings = obj.path;
+	   					}
 		
 	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
-	       				update(changings);
+	       			this.whiteboard = update(changings, this.whiteboard);
        					
-   				}
+   					}
+                }
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");
                 }
