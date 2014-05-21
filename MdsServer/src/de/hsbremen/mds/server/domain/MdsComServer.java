@@ -98,6 +98,17 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		}
 		conn.send(message);
 	}
+	
+	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiterboardUpdateObject> wObj) {
+		String message = "";
+		try {
+			message = EntryHandler.toJson(wObj);
+		} catch (UnknownWhiteboardTypeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		conn.send(message);
+	}
 
 
 }
