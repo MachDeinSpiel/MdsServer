@@ -15,7 +15,7 @@ import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
-import de.hsbremen.mds.server.parser.ParserServer;
+import de.hsbremen.mds.server.parser.ParserServerNew;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
 	//Test Whiteboard
@@ -29,8 +29,8 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
 		this.comServer = mdsComServer;
-		ParserServer parServ = new ParserServer(file);
-		this.whiteboard = parServ.getWhiteboard();
+		ParserServerNew parServ = new ParserServerNew(file);
+		this.whiteboard = parServ.getWB();
 		
 		this.displayWhiteboard(this.whiteboard, new Vector<String>());
 		
