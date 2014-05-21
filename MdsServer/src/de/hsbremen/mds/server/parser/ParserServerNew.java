@@ -54,7 +54,9 @@ public class ParserServerNew {
 		Whiteboard wb = new Whiteboard();
 		Set<String> keySet = jo.keySet();
 		for (String key : keySet){
+			//System.out.print("parse Key:["+key+"]");
 			if(jo.get(key) instanceof JSONObject) {
+				//System.out.print(" -> ist JSONObject \n");
 				try {
 					wb.setAttribute(new WhiteboardEntry(parse((JSONObject) jo.get(key)), "none"), key);
 				} catch (InvalidWhiteboardEntryException e) {
@@ -63,6 +65,7 @@ public class ParserServerNew {
 				}
 			}
 			else {
+				//System.out.print(" -> ist value \n");
 				try {
 					wb.setAttribute(new WhiteboardEntry(jo.get(key).toString(), "none"), key);
 				} catch (InvalidWhiteboardEntryException e) {
@@ -81,10 +84,10 @@ public class ParserServerNew {
 	
 	public void printWhiteboard(String keyPath, Whiteboard wb){
 		for(String key : wb.keySet()){
-			if(wb.getAttribute(key).value instanceof Whiteboard){
+			if(!(wb.getAttribute(key).value instanceof String)){
 				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
 			}else{
-				System.out.println(keyPath+ ":"+ wb.getAttribute(key).value.toString());
+				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
 			}
 		}
 	}
