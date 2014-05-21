@@ -33,7 +33,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		this.whiteboard = parServ.getWB();
 		
 		this.displayWhiteboard(this.whiteboard, new Vector<String>());
-		
+		/*
 		// Muss fuer Test hinzugefuegt werden:
 		try {
 			this.whiteboard.setAttribute(new WhiteboardEntry(new Whiteboard(), "all"), "Players");
@@ -41,6 +41,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
 	}
 
 	@Override
