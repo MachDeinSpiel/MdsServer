@@ -15,6 +15,7 @@ import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
+import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServerNew;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
@@ -22,7 +23,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	Whiteboard whiteboard = new Whiteboard();
 	//---------------------------------
 	private MdsComServer comServer;
-
+	private Vector<WhiterboardUpdateObject> whiteboardUpdateObjects;
 	//Websockets Hashmap...
 	private HashMap<String,WebSocket> clients = new HashMap<String, WebSocket>();
 
@@ -84,16 +85,31 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
 		System.out.println("onFullWhiteboardUpdate");
-		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
-			if (mapEntry.getValue().value instanceof Whiteboard) {
-				keys.add(mapEntry.getKey());
-				this.onFullWhiteboardUpdate(conn, (Whiteboard) mapEntry.getValue().value, keys);
-			} else {
-				this.comServer.sendUpdate(conn, keys, mapEntry.getValue());
-				keys = new Vector<String>();
-			}
+		try {
+			makeWhiteboardList(wb, keys);
+		} catch (InvalidWhiteboardEntryException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		this.comServer.sendUpdate(conn, whiteboardUpdateObjects);
+		whiteboardUpdateObjects.clear();
 		
+		
+//		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
+//			if (mapEntry.getValue().value instanceof Whiteboard) {
+//				keys.add(mapEntry.getKey(), keys);
+//				//TODO: Rekursion mehr! muss geaendert werden.
+//				makeWhiteboardList(wb, up);
+//			} else {
+//				try {
+//					wbe = new WhiteboardEntry(mapEntry.getValue(), mapEntry.getValue().visibility); 
+//				} catch (InvalidWhiteboardEntryException e) {
+//					e.printStackTrace();
+//				}	
+//				keys = new Vector<String>();
+//			}
+//		}
+//		this.comServer.sendUpdate(conn, up);
 	}
 	
 	private void displayWhiteboard(Whiteboard wb, List<String> keys) {
@@ -117,7 +133,26 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			}
 		}
 	}
-
+	/**
+	 * 
+	 * 
+	 * @param wb Whiteboard
+	 * @param keys Key List
+	 * @throws InvalidWhiteboardEntryException
+	 */
+	private void makeWhiteboardList(Whiteboard wb, List<String> keys) throws InvalidWhiteboardEntryException{
+		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
+			if (mapEntry.getValue().value instanceof Whiteboard) {
+				keys.add(mapEntry.getKey());
+				makeWhiteboardList((Whiteboard) mapEntry.getValue().value, keys);
+			} else {
+				WhiteboardEntry wbe = new WhiteboardEntry(mapEntry.getValue().value, mapEntry.getValue().visibility);
+				WhiterboardUpdateObject whiborupob = new WhiterboardUpdateObject(keys, wbe);
+				whiteboardUpdateObjects.add(whiborupob);
+				keys.clear();
+			}
+		}
+	}
 
 	@Override
 	public boolean onNewConnection(WebSocket conn, ClientHandshake handshake) {
