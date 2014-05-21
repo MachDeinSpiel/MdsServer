@@ -14,7 +14,7 @@ import de.hsbremen.mds.common.communication.EntryHandler;
 import de.hsbremen.mds.common.exception.UnknownWhiteboardTypeException;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
-import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
+import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 
 /**
  * 
@@ -56,9 +56,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		
-		WhiterboardUpdateObject wObj = EntryHandler.toObject(message);
-		mdsServerInterpreter.onWhiteboardUpdate(conn, wObj.getKeys(), wObj.getValue());
-		
+		List<WhiteboardUpdateObject> wObj = EntryHandler.toObject(message);
+		for (WhiteboardUpdateObject wb : wObj) {
+			mdsServerInterpreter.onWhiteboardUpdate(conn, wb.getKeys(), wb.getValue());
+			
+		}
 		System.out.println(conn + ": " + message);
 		
 		
@@ -99,7 +101,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		conn.send(message);
 	}
 	
-	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiterboardUpdateObject> wObj) {
+	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wObj) {
 		String message = "";
 		try {
 			message = EntryHandler.toJson(wObj);

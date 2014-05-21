@@ -2,7 +2,6 @@ package de.hsbremen.mds.server.domain;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -15,7 +14,7 @@ import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
-import de.hsbremen.mds.common.whiteboard.WhiterboardUpdateObject;
+import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServerNew;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
@@ -23,7 +22,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	Whiteboard whiteboard = new Whiteboard();
 	//---------------------------------
 	private MdsComServer comServer;
-	private Vector<WhiterboardUpdateObject> whiteboardUpdateObjects;
+	private List<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
 	//Websockets Hashmap...
 	private HashMap<String,WebSocket> clients = new HashMap<String, WebSocket>();
 
@@ -34,7 +33,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
 		
-		this.displayWhiteboard(this.whiteboard, new Vector<String>());
 		/*
 		// Muss fuer Test hinzugefuegt werden:
 		try {
@@ -91,7 +89,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		this.comServer.sendUpdate(conn, whiteboardUpdateObjects);
+		this.comServer.onFullWhiteboardUpdate(conn, whiteboardUpdateObjects);
 		whiteboardUpdateObjects.clear();
 		
 		
@@ -111,28 +109,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 //		}
 //		this.comServer.sendUpdate(conn, up);
 	}
-	
-	private void displayWhiteboard(Whiteboard wb, List<String> keys) {
-		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
-			if (mapEntry.getValue().value instanceof Whiteboard) {
-				System.out.println("Whiteboard");
-				keys.add(mapEntry.getKey());
-				this.displayWhiteboard((Whiteboard) mapEntry.getValue().value, keys);
-			} else {
-				
-				String path = "";
-				Iterator<String> it = keys.iterator();
-				if(it.hasNext()){
-					path = it.next();
-					while (it.hasNext()) {
-						path = path + "." + it.next();
-					}
-				}
-				System.out.println("PATH: " + path + " VALUE:" + mapEntry.getValue().value);
-				keys = new Vector<String>();
-			}
-		}
-	}
+
 	/**
 	 * 
 	 * 
@@ -147,7 +124,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 				makeWhiteboardList((Whiteboard) mapEntry.getValue().value, keys);
 			} else {
 				WhiteboardEntry wbe = new WhiteboardEntry(mapEntry.getValue().value, mapEntry.getValue().visibility);
-				WhiterboardUpdateObject whiborupob = new WhiterboardUpdateObject(keys, wbe);
+				WhiteboardUpdateObject whiborupob = new WhiteboardUpdateObject(keys, wbe);
 				whiteboardUpdateObjects.add(whiborupob);
 				keys.clear();
 			}
@@ -177,7 +154,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			keys.add(playerName);
 			
 			// TODO: laeuft noch nicht :-(
-			// this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
 			this.onWhiteboardUpdate(conn, keys, player);
 			
 			return true;
