@@ -17,18 +17,27 @@ import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 
 public class ParserServerNew {
 	
-	private Whiteboard WB = new Whiteboard();
+	private Whiteboard WB = null;
 
 	public ParserServerNew(File jsonFile){
 		JSONParser parser = new JSONParser();
-		 
+		System.out.println("____________");
 		try {
 			
 			Object obj = parser.parse(new FileReader(jsonFile));
 	 
 			JSONObject jsonObject = (JSONObject) obj;
+			
+//			Set<String> keys = ((JSONObject)((JSONObject)((JSONObject)((JSONObject)jsonObject.get("Bombs")).get("Bomb1")).get("useAction")).get("removeFromGroup")).keySet();
+//			for(String s : keys){
+//				System.out.println(s);
+//			}
 		
 			WB = parse((JSONObject) obj);
+			
+			System.out.println("____________");
+			printWhiteboard("", WB);
+			
 					
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -67,5 +76,16 @@ public class ParserServerNew {
 	
 	public Whiteboard getWB() {
 		return WB;
+	}
+	
+	
+	public void printWhiteboard(String keyPath, Whiteboard wb){
+		for(String key : wb.keySet()){
+			if(wb.getAttribute(key).value instanceof Whiteboard){
+				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
+			}else{
+				System.out.println(keyPath+ ":"+ wb.getAttribute(key).value.toString());
+			}
+		}
 	}
 }
