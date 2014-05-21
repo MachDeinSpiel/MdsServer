@@ -28,6 +28,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 
 	
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
+		System.out.println("Interpreter wurde erstellt");
 		this.comServer = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
@@ -48,7 +49,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	/**
 	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
-		
+		System.out.println("onWhiteboardUpdate/senden an alle player");
 		// Lokales WB aktualisieren
 		this.onWhiteboardUpdate(keys, entry);
 		
@@ -66,6 +67,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	@Override
 	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+		System.out.println("onWhiteboardUpdate/intern");
 		String[] key = new String[keys.size()];
 		key = keys.toArray(key);
 		this.whiteboard.setAttribute(value, key);
@@ -81,7 +83,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 * @param keys - Key zum WB
 	 */
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
-		
+		System.out.println("onFullWhiteboardUpdate");
 		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
 			if (mapEntry.getValue().value instanceof Whiteboard) {
 				keys.add(mapEntry.getKey());
@@ -119,7 +121,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 
 	@Override
 	public boolean onNewConnection(WebSocket conn, ClientHandshake handshake) {
-		
+		System.out.println("Neuer Player angemeldet");
 		String playerName = handshake.getResourceDescriptor();
 		
 		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
