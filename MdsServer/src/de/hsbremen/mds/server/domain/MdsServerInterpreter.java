@@ -162,5 +162,11 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		return false;
 	}
+
+	@Override
+	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

@@ -57,9 +57,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	public void onMessage(WebSocket conn, String message) {
 		
 		List<WhiteboardUpdateObject> wObj = EntryHandler.toObject(message);
-		for (WhiteboardUpdateObject wb : wObj) {
-			mdsServerInterpreter.onWhiteboardUpdate(conn, wb.getKeys(), wb.getValue());
-			
+		if(wObj.size() == 1) {
+			mdsServerInterpreter.onWhiteboardUpdate(conn, wObj.get(0).getKeys(), wObj.get(0).getValue());
+				
+		} else {
+			mdsServerInterpreter.onFullWhiteboardUpdate(conn, wObj);
 		}
 		System.out.println(conn + ": " + message);
 		
