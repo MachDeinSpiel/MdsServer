@@ -4,6 +4,6 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MdsCommon"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="/MdsCommon/libs/java_websocket.jar"/>
-	<classpathentry kind="lib" path="/MdsAndroid/libs/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/MdsCommon/libs/json-simple-1.1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
