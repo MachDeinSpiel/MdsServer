@@ -106,12 +106,9 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 				
 				makeWhiteboardList((Whiteboard) wb.getAttribute(key).value, keyList);
 			}else{
-				//System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
-				System.out.println("else: "+ key);
 				Vector<String> keyList = new Vector<String>(keys);
 				keyList.add(key);
 				WhiteboardEntry wbe = new WhiteboardEntry(wb.getAttribute(key).value, wb.getAttribute(key).visibility);
-				//Vector<String> n = new Vector<String>(ke);//(Vector<String>) keyList.clone();
 				WhiteboardUpdateObject wbuo = new WhiteboardUpdateObject(keyList, wbe);
 				whiteboardUpdateObjects.add(wbuo);
 			}
