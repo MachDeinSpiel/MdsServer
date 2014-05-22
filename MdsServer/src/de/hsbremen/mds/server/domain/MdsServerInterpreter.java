@@ -22,7 +22,8 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	Whiteboard whiteboard = new Whiteboard();
 	//---------------------------------
 	private MdsComServer comServer;
-	private List<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
+	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
+	private Vector<String> keyList = new Vector<String>();
 	//Websockets Hashmap...
 	private HashMap<String,WebSocket> clients = new HashMap<String, WebSocket>();
 
@@ -84,30 +85,17 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
 		System.out.println("onFullWhiteboardUpdate");
 		try {
-			makeWhiteboardList(wb, keys);
+			makeWhiteboardList(wb/*, keys*/);
 		} catch (InvalidWhiteboardEntryException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		//Vector<WhiteboardUpdateObject> vec = (Vector<WhiteboardUpdateObject>) whiteboardUpdateObjects.clone(); 
 		this.comServer.onFullWhiteboardUpdate(conn, whiteboardUpdateObjects);
+		//Vectoren leeren
 		whiteboardUpdateObjects.clear();
+		keyList.clear();
 		
-		
-//		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
-//			if (mapEntry.getValue().value instanceof Whiteboard) {
-//				keys.add(mapEntry.getKey(), keys);
-//				//TODO: Rekursion mehr! muss geaendert werden.
-//				makeWhiteboardList(wb, up);
-//			} else {
-//				try {
-//					wbe = new WhiteboardEntry(mapEntry.getValue(), mapEntry.getValue().visibility); 
-//				} catch (InvalidWhiteboardEntryException e) {
-//					e.printStackTrace();
-//				}	
-//				keys = new Vector<String>();
-//			}
-//		}
-//		this.comServer.sendUpdate(conn, up);
 	}
 
 	/**
@@ -117,18 +105,21 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 * @param keys Key List
 	 * @throws InvalidWhiteboardEntryException
 	 */
-	private void makeWhiteboardList(Whiteboard wb, List<String> keys) throws InvalidWhiteboardEntryException{
+	private void makeWhiteboardList(Whiteboard wb/*, List<String> keys*/) throws InvalidWhiteboardEntryException{
 		for (Entry<String, WhiteboardEntry> mapEntry : wb.entrySet()) {
 			if (mapEntry.getValue().value instanceof Whiteboard) {
-				keys.add(mapEntry.getKey());
-				makeWhiteboardList((Whiteboard) mapEntry.getValue().value, keys);
+				this.keyList.add(mapEntry.getKey());
+				System.out.println("mapEntry: " + mapEntry.getKey());
+				makeWhiteboardList((Whiteboard) mapEntry.getValue().value);
 			} else {
+				System.out.println("mapEntry: " + mapEntry.getKey());
 				WhiteboardEntry wbe = new WhiteboardEntry(mapEntry.getValue().value, mapEntry.getValue().visibility);
-				WhiteboardUpdateObject whiborupob = new WhiteboardUpdateObject(keys, wbe);
+				Vector<String> n = (Vector<String>) keyList.clone();
+				WhiteboardUpdateObject whiborupob = new WhiteboardUpdateObject(n, wbe);//TODO: fehler fixen
 				whiteboardUpdateObjects.add(whiborupob);
-				keys.clear();
 			}
 		}
+		this.keyList.clear();
 	}
 
 	@Override
