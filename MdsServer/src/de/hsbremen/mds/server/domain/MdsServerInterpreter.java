@@ -32,7 +32,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
 		String keyPath = null;
-		this.printWhiteboard(keyPath, this.whiteboard);
+		//this.printWhiteboard(keyPath, this.whiteboard);
 		/*
 		// Muss fuer Test hinzugefuegt werden:
 		try {
@@ -124,9 +124,9 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 
 	@Override
-	public boolean onNewConnection(WebSocket conn, ClientHandshake handshake) {
+	public boolean onNewConnection(WebSocket conn, String name) {
 		System.out.println("Neuer Player angemeldet");
-		String playerName = handshake.getResourceDescriptor();
+		String playerName = name;
 		
 		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
 		
