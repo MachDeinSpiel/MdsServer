@@ -150,7 +150,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			this.onWhiteboardUpdate(conn, keys, player);
 			
 			return true;
-		}
+		}	
 		
 		return false;
 	}
@@ -168,5 +168,10 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
 			}
 		}
+	}
+
+	public void onLostConnection(WebSocket conn) {
+		// TODO Auto-generated method stub
+		
 	}
 }

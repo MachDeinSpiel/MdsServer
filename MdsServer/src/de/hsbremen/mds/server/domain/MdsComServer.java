@@ -131,6 +131,13 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+		if (this.waitingClients.contains(conn)) {
+			this.waitingClients.remove(conn);
+		} else if (this.playingClients.containsKey(conn)) {
+			int gameID = this.playingClients.get(conn);
+			this.mdsInterpreters.get(gameID).onLostConnection(conn);
+			this.playingClients.remove(conn);
+		}
 	}
 
 	@Override
