@@ -5,10 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
-
 import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
-
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
@@ -18,9 +15,7 @@ import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServerNew;
 
 public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
-	//Test Whiteboard
-	Whiteboard whiteboard = new Whiteboard();
-	//---------------------------------
+	private Whiteboard whiteboard = new Whiteboard();
 	private MdsComServer comServer;
 	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
 	//Websockets Hashmap...
@@ -31,21 +26,11 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		this.comServer = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
-		String keyPath = null;
-		//this.printWhiteboard(keyPath, this.whiteboard);
-		/*
-		// Muss fuer Test hinzugefuegt werden:
-		try {
-			this.whiteboard.setAttribute(new WhiteboardEntry(new Whiteboard(), "all"), "Players");
-		} catch (InvalidWhiteboardEntryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
 	}
 
 	@Override
 	/**
+	 * 
 	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		// Lokales WB aktualisieren
@@ -65,26 +50,22 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	@Override
 	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
-		String[] key = new String[keys.size()];
-		key = keys.toArray(key);
+		String [] key = this.getStringArrayPath(keys);
 		this.whiteboard.setAttribute(value, key);
 	}
 	
 	/**
 	 * Client kompletten WB senden
 	 * 
-	 * TODO: Rekursion pruefen
 	 * 
 	 * @param conn - der Client
 	 * @param wb - das WB
 	 * @param keys - Key zum WB
 	 */
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
-
 		try {
 			makeWhiteboardList(wb, keys);
 		} catch (InvalidWhiteboardEntryException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		this.comServer.onFullWhiteboardUpdate(conn, whiteboardUpdateObjects);
@@ -92,28 +73,17 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		whiteboardUpdateObjects.clear();	
 	}
 	/**
+	 * Loescht einen gewueschtes Whiteboard.
+	 * Z.b Player hat das Spiel verlassen, sein Player Whiteboard wird
+	 * aus den Players Whiteboard geloescht.
 	 * 
-	 * 
-	 * @param wb Whiteboard
 	 * @param keys List<String>
-	 * @throws InvalidWhiteboardEntryException
 	 */
-	public void makeWhiteboardList(Whiteboard wb, List<String> keys) throws InvalidWhiteboardEntryException{
-		for(String key : wb.keySet()){
-			if(!(wb.getAttribute(key).value instanceof String)){
-				Vector<String> keyList = new Vector<String>(keys);
-				keyList.add(key);
-				
-				makeWhiteboardList((Whiteboard) wb.getAttribute(key).value, keyList);
-			}else{
-				Vector<String> keyList = new Vector<String>(keys);
-				keyList.add(key);
-				WhiteboardEntry wbe = new WhiteboardEntry(wb.getAttribute(key).value, wb.getAttribute(key).visibility);
-				WhiteboardUpdateObject wbuo = new WhiteboardUpdateObject(keyList, wbe);
-				whiteboardUpdateObjects.add(wbuo);
-			}
-		}
+	public void removeWhiteboard(List<String> keys){
+		String [] key = this.getStringArrayPath(keys);
+		whiteboard.deleteAttribute(key);
 	}
+	
 
 	/**
 	 * 
@@ -134,7 +104,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			try {
 				player = new WhiteboardEntry(playerName, "all");
 			} catch (InvalidWhiteboardEntryException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -144,8 +113,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			List<String> keys = new Vector<String>();
 			keys.add("Players");
 			keys.add(playerName);
-			
-			// TODO: laeuft noch nicht :-(
+
 			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
 			this.onWhiteboardUpdate(conn, keys, player);
 			
@@ -155,11 +123,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		return false;
 	}
 
-	@Override
-	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
-		// TODO Auto-generated method stub
-		
-	}
 	public void printWhiteboard(String keyPath, Whiteboard wb){
 		for(String key : wb.keySet()){
 			if(!(wb.getAttribute(key).value instanceof String)){
@@ -174,4 +137,61 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		// TODO Auto-generated method stub
 		
 	}
+	
+	/**
+	 * 
+	 * Private Methoden
+	 * 
+	 */
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param wb Whiteboard
+	 * @param keys List<String>
+	 * @throws InvalidWhiteboardEntryException
+	 */
+	private void makeWhiteboardList(Whiteboard wb, List<String> keys) throws InvalidWhiteboardEntryException{
+		for(String key : wb.keySet()){
+			if(!(wb.getAttribute(key).value instanceof String)){
+				Vector<String> keyList = new Vector<String>(keys);
+				keyList.add(key);
+				
+				makeWhiteboardList((Whiteboard) wb.getAttribute(key).value, keyList);
+			}else{
+				Vector<String> keyList = new Vector<String>(keys);
+				keyList.add(key);
+				WhiteboardEntry wbe = new WhiteboardEntry(wb.getAttribute(key).value, wb.getAttribute(key).visibility);
+				WhiteboardUpdateObject wbuo = new WhiteboardUpdateObject(keyList, wbe);
+				whiteboardUpdateObjects.add(wbuo);
+			}
+		}
+	}
+	
+	/**
+	* Gibt einen String Array zurueck.
+	* 
+	* Im String[] ist der Path fuer das gewueschte Whiteboard.
+	* 
+	* 
+	* @param keys List<String>
+	* @return String[]
+	*/
+	private String[] getStringArrayPath(List<String> keys){
+		String[] key = new String[keys.size()];
+		return key = keys.toArray(key);
+	}
+	
+	/**
+	 * 
+	 * Methoden werden nicht benutzt 
+	 * 
+	 */
+
+	@Override
+	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
+		// TODO Auto-generated method stub
+		
+	}	
 }
