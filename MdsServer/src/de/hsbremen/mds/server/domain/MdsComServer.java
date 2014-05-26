@@ -85,13 +85,28 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			String url = game.get("serverurl").toString();
 			System.out.println("\nNew Interpreter with " + url);
 			MdsServerInterpreter mdsSI = new MdsServerInterpreter(this, this.jsonEinlesen(url));
-			this.mdsInterpreters.add(mdsSI);
-			
+			this.mdsInterpreters.add(mdsSI);	
 		}
-		
-		
-		
-		
+	}
+	
+	
+	private void updateGameInfo(int gameID, String key, Object value){
+		JSONObject theGame = (JSONObject) this.gamesJSON.getJSONArray("games").get(gameID);
+		/*Object theValue = theGame.get(key);
+		if (theValue.getClass() == String.class) {
+			theValue = (String)theValue + (String)value;
+		} else if (theValue.getClass() == Integer.class) {
+			theValue = (Integer)theValue + (Integer)value;
+		} else if (theValue.getClass() == Float.class) {
+			theValue = (Float)theValue + (Float)value;
+		}*/
+		theGame.remove(key);
+		theGame.put(key, value);
+	}
+	
+	private Object getGameInfoValue(int gameID, String key) {
+		JSONObject theGame = (JSONObject) this.gamesJSON.getJSONArray("games").get(gameID);
+		return theGame.get(key);
 		
 	}
 	
@@ -134,16 +149,27 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			}
 		} else if (this.waitingClients.contains(conn)) {
 			JSONObject mes = new JSONObject(message);
-			boolean connect = (Boolean) mes.get("connect");
+			String mode = mes.getString("mode");
 			int id = mes.getInt("id");
 			String name = mes.getString("name");
-			if (connect){
+			if (mode.equals("join")){
 				this.mdsInterpreters.get(id).onNewConnection(conn, name);
+				this.waitingClients.remove(conn);
+				int activeplayers = (Integer) this.getGameInfoValue(id, "activeplayers") + 1;
+				this.updateGameInfo(id, "activeplayers", activeplayers);
+				this.notifyLobby();
 			}
 			
 		}
 		//System.out.println(conn + ": " + message);
 		
+		
+	}
+
+	private void notifyLobby() {
+		for(WebSocket ws : this.waitingClients) {
+			ws.send(this.gamesJSON.toString());
+		}
 		
 	}
 
