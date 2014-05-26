@@ -2,10 +2,13 @@ package de.hsbremen.mds.server.domain;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
+
 import org.java_websocket.WebSocket;
+
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
@@ -34,8 +37,9 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		// Lokales WB aktualisieren
-		this.onWhiteboardUpdate(keys, entry);
-		
+		if(!entry.getValue().equals("delete")){
+			this.onWhiteboardUpdate(keys, entry);
+		}
 		// Allen anderen Clients das Update schicken
 		for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
 			if (!mapEntry.getValue().equals(conn)) {
@@ -72,18 +76,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		//Vectoren leeren
 		whiteboardUpdateObjects.clear();	
 	}
-	/**
-	 * Loescht einen gewueschtes Whiteboard.
-	 * Z.b Player hat das Spiel verlassen, sein Player Whiteboard wird
-	 * aus den Players Whiteboard geloescht.
-	 * 
-	 * @param keys List<String>
-	 */
-	public void removeWhiteboard(List<String> keys){
-		String [] key = this.getStringArrayPath(keys);
-		whiteboard.deleteAttribute(key);
-	}
-	
 
 	/**
 	 * 
@@ -122,8 +114,47 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		return false;
 	}
+	
+	/**
+	 * Loescht einen gewueschtes Whiteboard.
+	 * Z.b Player hat das Spiel verlassen, sein Player Whiteboard wird
+	 * aus den Players Whiteboard geloescht.
+	 * 
+	 * @param keys List<String>
+	 */
+	public void removeWhiteboard(WebSocket conn, List<String> keys){
+		String key = keys.get(keys.size() - 1);
+		keys.remove(keys.size() - 1);
+		String [] path  = this.getStringArrayPath(keys);
+		//remove whiteboard
+		WhiteboardEntry ent = whiteboard.getAttribute(path);
+		Whiteboard wb   = (Whiteboard) ent.getValue();
+		wb.remove(key);	
+		//update
+		keys.add(key);
+		WhiteboardEntry entry = null;
+		try {
+			entry = new WhiteboardEntry("delete", "");
+		} catch (InvalidWhiteboardEntryException e) {
+			e.printStackTrace();
+		}
+		this.onWhiteboardUpdate(conn, keys, entry);
+	}	
 
+	public void onLostConnection(WebSocket conn) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/**
+	 * 
+	 * Test Methoden
+	 * 
+	 */
 	public void printWhiteboard(String keyPath, Whiteboard wb){
+		List<String> a = new Vector<String>();
+		a.add("Players");
+		a.add("Player1");
 		for(String key : wb.keySet()){
 			if(!(wb.getAttribute(key).value instanceof String)){
 				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
@@ -131,12 +162,10 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
 			}
 		}
-	}
-
-	public void onLostConnection(WebSocket conn) {
-		// TODO Auto-generated method stub
 		
 	}
+
+
 	
 	/**
 	 * 
@@ -157,7 +186,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			if(!(wb.getAttribute(key).value instanceof String)){
 				Vector<String> keyList = new Vector<String>(keys);
 				keyList.add(key);
-				
 				makeWhiteboardList((Whiteboard) wb.getAttribute(key).value, keyList);
 			}else{
 				Vector<String> keyList = new Vector<String>(keys);
