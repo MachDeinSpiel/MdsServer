@@ -41,14 +41,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private JSONObject gamesJSON;
 	private List<MdsServerInterpreter> mdsInterpreters;
 	private List<WebSocket> waitingClients;
-	private Map<WebSocket, Integer> games;
+	private Map<WebSocket, Integer> playingClients;
 		
 	
 	public MdsComServer(int port, File file) throws UnknownHostException {
 		super(new InetSocketAddress(port) );
 		this.initInterpreters(file);
 		this.waitingClients = new Vector<WebSocket>();
-		this.games = new HashMap<WebSocket, Integer>();
+		this.playingClients = new HashMap<WebSocket, Integer>();
 		//this.mdsServerInterpreter = new MdsServerInterpreter(this, file);
 	}
 
@@ -136,8 +136,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 	
-		if(this.games.containsKey(conn)) {
-			int gameID = this.games.get(conn);
+		if(this.playingClients.containsKey(conn)) {
+			int gameID = this.playingClients.get(conn);
 			List<WhiteboardUpdateObject> wObj = EntryHandler.toObject(message);
 			if(wObj.size() == 1) {
 				this.mdsInterpreters.get(gameID).onWhiteboardUpdate(conn, wObj.get(0).getKeys(), wObj.get(0).getValue());
