@@ -133,9 +133,15 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		if (this.waitingClients.contains(conn)) {
 			this.waitingClients.remove(conn);
-		} else if (this.playingClients.containsKey(conn)) {
+		
+		}
+		
+		if (this.playingClients.containsKey(conn)) {
 			int gameID = this.playingClients.get(conn);
 			this.mdsInterpreters.get(gameID).onLostConnection(conn);
+			int activeplayers = (Integer) this.getGameInfoValue(gameID, "activeplayers") - 1;
+			this.updateGameInfo(gameID, "activeplayers", activeplayers);
+			this.notifyLobby();
 			this.playingClients.remove(conn);
 		}
 	}
@@ -177,6 +183,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		for(WebSocket ws : this.waitingClients) {
 			ws.send(this.gamesJSON.toString());
 		}
+		System.out.println("Lobby Update");
 		
 	}
 
