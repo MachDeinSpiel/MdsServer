@@ -168,9 +168,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			}
 		} else if (this.waitingClients.contains(conn)) {
 			String mode = mes.getString("mode");
-			int id = mes.getInt("id");
-			String name = mes.getString("name");
 			if (mode.equals("join")){
+				int id = mes.getInt("id");
+				String name = mes.getString("name");
 				this.mdsInterpreters.get(id).onNewConnection(conn, name);
 				this.waitingClients.remove(conn);
 				int activeplayers = (Integer) this.getGameInfoValue(id, "activeplayers") + 1;
