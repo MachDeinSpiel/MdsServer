@@ -144,6 +144,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			this.notifyLobby();
 			this.playingClients.remove(conn);
 		}
+		
+		
 	}
 
 	@Override
@@ -173,6 +175,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				String name = mes.getString("name");
 				this.mdsInterpreters.get(id).onNewConnection(conn, name);
 				this.waitingClients.remove(conn);
+				this.playingClients.put(conn, id);
 				int activeplayers = (Integer) this.getGameInfoValue(id, "activeplayers") + 1;
 				this.updateGameInfo(id, "activeplayers", activeplayers);
 				this.notifyLobby();
