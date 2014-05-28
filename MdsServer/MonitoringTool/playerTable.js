@@ -1,4 +1,7 @@
-//var whiteboard = this.whiteboard;
+
+
+
+//var whiteboard = this.Whiteboard;
 
 function delete_table()	{
 
@@ -7,7 +10,16 @@ function delete_table()	{
 	}
 }
 
-function generate_table() {
+function generate_table(whiteboard) {
+	
+	if (whiteboard) {
+		var wb = whiteboard.Players;
+		console.log("whiteboard: " + wb);
+	}
+//	var wp = whiteboard.Players;
+//	var wph = whiteboard.Players.health;
+//	console.log("whiteboard Players: " + wp);
+//	console.log("whiteboard Players health: " + wph);
 	
 	delete_table();
 	// get the reference for the body
@@ -57,7 +69,7 @@ function addRowHandlers() {
         	return function() {
         		var cell = row.getElementsByTagName("td")[0];
         		var id = cell.innerHTML;
-        		// Hier könnte der Aufruf für die Ausgabe stehen
+        		// Hier könnte der Aufruf für die Ausgabe des Inventars stehen
         		alert("id:" + id);
         	};
         };
@@ -65,4 +77,8 @@ function addRowHandlers() {
         currentRow.onclick = createClickHandler(currentRow);
         
     }
+}
+
+function update_table() {
+	
 }

@@ -33,6 +33,7 @@
 	<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 	<script src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
 
+	<!--
     <script type="text/javascript">
         document.observe("dom:loaded", function() {
             function log(text) {
@@ -71,18 +72,62 @@
                     log("[WebSocket#onclose]\n");
                 }
             });
-
+		
+        generate_table(this.whiteboard);
 
 
     </script>
+    -->
   </head>
   <body>
   	<h1>MDS-Monitoring Tool</>
     <div id="map-canvas" style= "width:900px; height:500px"> </div>
-   	<script language="javascript">
-		generate_table();
-	</script>
-	
+   	<!-- <script language="javascript">
+		generate_table(this.whiteboard);
+	</script> -->
+	<script type="text/javascript">
+        document.observe("dom:loaded", function() {
+            function log(text) {
+                $("log").innerHTML = (new Date).getTime() + ": " + (!Object.isUndefined(text) && text !== null ? text.escapeHTML() : "null") + $("log").innerHTML;
+            }
+
+            if (!window.WebSocket) {
+                alert("FATAL: WebSocket not natively supported. This demo will not work!");
+            }
+
+            var ws;
+        	this.whiteboard = new Whiteboard();
+
+
+            //Aufbau der Websocketverbindung
+                ws = new WebSocket("ws://feijnox.no-ip.org:8000");
+                ws.onopen = function() {
+                    log("[WebSocket#onopen]\n");
+
+                }
+                ws.onmessage = function(e) {
+                    log("[WebSocket#onmessage] Message: '" + e.data + "'\n");
+                    var message = e.data;
+                    if(message.startsWith("{")){
+	   					obj = JSON.parse(message);
+	   					if(!obj.path === null){
+	   						var changings = obj.path;
+	   					}
+		
+	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
+	       			this.whiteboard = update(changings, this.whiteboard);
+       					
+   					}
+                }
+                ws.onclose = function() {
+                    log("[WebSocket#onclose]\n");
+                }
+            });
+		
+        generate_table(this.whiteboard);
+
+
+    </script>
 	<input type="button" value="Delete a table." onclick="delete_table()">
 	<input type="button" value="Generate a table." onclick="generate_table()">
   
