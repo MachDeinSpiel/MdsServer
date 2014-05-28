@@ -2,13 +2,10 @@ package de.hsbremen.mds.server.domain;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
-
 import org.java_websocket.WebSocket;
-
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
@@ -29,6 +26,8 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		this.comServer = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
+//		String a = null;
+//		this.printWhiteboard(a, this.whiteboard);
 	}
 
 	@Override
@@ -37,8 +36,10 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		// Lokales WB aktualisieren
-		if(!entry.getValue().equals("delete")){
-			this.onWhiteboardUpdate(keys, entry);
+		this.onWhiteboardUpdate(keys, entry);
+		//Whiteboard loeschen
+		if(entry.getValue().equals("delete")){
+			this.removeWhiteboard(conn, keys);
 		}
 		// Allen anderen Clients das Update schicken
 		for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
@@ -114,32 +115,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		return false;
 	}
-	
-	/**
-	 * Loescht einen gewueschtes Whiteboard.
-	 * Z.b Player hat das Spiel verlassen, sein Player Whiteboard wird
-	 * aus den Players Whiteboard geloescht.
-	 * 
-	 * @param keys List<String>
-	 */
-	public void removeWhiteboard(WebSocket conn, List<String> keys){
-		String key = keys.get(keys.size() - 1);
-		keys.remove(keys.size() - 1);
-		String [] path  = this.getStringArrayPath(keys);
-		//remove whiteboard
-		WhiteboardEntry ent = whiteboard.getAttribute(path);
-		Whiteboard wb   = (Whiteboard) ent.getValue();
-		wb.remove(key);	
-		//update
-		keys.add(key);
-		WhiteboardEntry entry = null;
-		try {
-			entry = new WhiteboardEntry("delete", "");
-		} catch (InvalidWhiteboardEntryException e) {
-			e.printStackTrace();
-		}
-		this.onWhiteboardUpdate(conn, keys, entry);
-	}	
 
 	public void onLostConnection(WebSocket conn) {
 		// TODO Auto-generated method stub
@@ -153,8 +128,9 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 */
 	public void printWhiteboard(String keyPath, Whiteboard wb){
 		List<String> a = new Vector<String>();
+		a.add("null");
 		a.add("Players");
-		a.add("Player1");
+		a.add("0");
 		for(String key : wb.keySet()){
 			if(!(wb.getAttribute(key).value instanceof String)){
 				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
@@ -162,7 +138,9 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
 			}
 		}
-		
+		System.out.println("DELEEEEETTTEEEEEEEEEEEEEEEEEEE");
+		this.removeWhiteboard(clients.get("1"), a);
+		printWhiteboard(keyPath, wb);
 	}
 
 
@@ -196,7 +174,34 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			}
 		}
 	}
+
 	
+	/**
+	 * Loescht einen gewueschtes Whiteboard.
+	 * Z.b Player hat das Spiel verlassen, sein Player Whiteboard wird
+	 * aus den Players Whiteboard geloescht.
+	 * 
+	 * @param keys List<String>
+	 */
+	private void removeWhiteboard(WebSocket conn, List<String> keys){
+		String key = keys.get(keys.size() - 1);
+		keys.remove(keys.size() - 1);
+		String [] path  = this.getStringArrayPath(keys);
+		//remove whiteboard
+		WhiteboardEntry ent = whiteboard.getAttribute(path);
+		Whiteboard wb   = (Whiteboard) ent.getValue();
+		wb.remove(key);	
+//		//update 
+//		keys.add(key);
+//		WhiteboardEntry entry = null;
+//		try {
+//			entry = new WhiteboardEntry("delete", "");
+//		} catch (InvalidWhiteboardEntryException e) {
+//			e.printStackTrace();
+//		}
+//		this.onWhiteboardUpdate(conn, keys, entry);
+	}	
+
 	/**
 	* Gibt einen String Array zurueck.
 	* 
