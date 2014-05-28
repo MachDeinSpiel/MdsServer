@@ -3,9 +3,14 @@ package de.hsbremen.mds.server.domain;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+
 import org.java_websocket.WebSocket;
+
+import com.sun.org.apache.bcel.internal.generic.InstructionConstants.Clinit;
+
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
@@ -19,7 +24,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	private MdsComServer comServer;
 	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
 	//Websockets Hashmap...
-	private HashMap<String,WebSocket> clients = new HashMap<String, WebSocket>();
+	private Map<String,WebSocket> clients = new HashMap<String, WebSocket>();
 
 	
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
@@ -115,10 +120,32 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		return false;
 	}
-
+	/**
+	 * 
+	 * 
+	 * @param conn WebSocket
+	 */
 	public void onLostConnection(WebSocket conn) {
-		// TODO Auto-generated method stub
+		System.out.println("HALLLOOO");
+		String name         = null;
+		WhiteboardEntry wbe = null;
+		List<String> keys   = new Vector<String>();
+		keys.add("Players");
 		
+		for(Map.Entry<String, WebSocket> entry : clients.entrySet()) {
+			if(entry.getValue().equals(conn)){
+				name = entry.getKey();
+				keys.add(name);
+				clients.remove(entry.getKey());
+			}
+		}
+		
+		try {
+			wbe = new WhiteboardEntry("delete", "");
+		} catch (InvalidWhiteboardEntryException e) {
+			e.printStackTrace();
+		}
+		this.onWhiteboardUpdate(conn, keys, wbe);
 	}
 	
 	/**
