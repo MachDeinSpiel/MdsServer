@@ -148,6 +148,12 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
+		
+		JSONObject mes = new JSONObject(message);
+		
+		if (mes.get("mode").equals("games")) {
+			conn.send(this.gamesJSON.toString());
+		}
 	
 		if(this.playingClients.containsKey(conn)) {
 			int gameID = this.playingClients.get(conn);
@@ -161,7 +167,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				//mdsServerInterpreter.onFullWhiteboardUpdate(conn, wObj);
 			}
 		} else if (this.waitingClients.contains(conn)) {
-			JSONObject mes = new JSONObject(message);
 			String mode = mes.getString("mode");
 			int id = mes.getInt("id");
 			String name = mes.getString("name");
