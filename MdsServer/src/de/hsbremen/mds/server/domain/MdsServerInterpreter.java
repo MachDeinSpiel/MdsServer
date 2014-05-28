@@ -137,15 +137,15 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 				name = entry.getKey();
 				keys.add(name);
 				clients.remove(entry.getKey());
+				
+				try {
+					wbe = new WhiteboardEntry("delete", "");
+				} catch (InvalidWhiteboardEntryException e) {
+					e.printStackTrace();
+				}
+				this.onWhiteboardUpdate(conn, keys, wbe);
 			}
-		}
-		
-		try {
-			wbe = new WhiteboardEntry("delete", "");
-		} catch (InvalidWhiteboardEntryException e) {
-			e.printStackTrace();
-		}
-		this.onWhiteboardUpdate(conn, keys, wbe);
+		}	
 	}
 	
 	/**
