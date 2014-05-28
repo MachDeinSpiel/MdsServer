@@ -27,7 +27,7 @@ import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import de.hsbremen.mds.common.communication.EntryHandler;
+import de.hsbremen.mds.common.communication.WhiteboardHandler;
 import de.hsbremen.mds.common.exception.UnknownWhiteboardTypeException;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
@@ -157,7 +157,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 		if(this.playingClients.containsKey(conn)) {
 			int gameID = this.playingClients.get(conn);
-			List<WhiteboardUpdateObject> wObj = EntryHandler.toObject(message);
+			List<WhiteboardUpdateObject> wObj = WhiteboardHandler.toObject(message);
 			if(wObj.size() == 1) {
 				this.mdsInterpreters.get(gameID).onWhiteboardUpdate(conn, wObj.get(0).getKeys(), wObj.get(0).getValue());
 				//mdsServerInterpreter.onWhiteboardUpdate(conn, wObj.get(0).getKeys(), wObj.get(0).getValue());
@@ -221,7 +221,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	public void sendUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		String message = "";
 		try {
-			message = EntryHandler.toJson(keys, entry);
+			message = WhiteboardHandler.toJson(keys, entry);
 		} catch (UnknownWhiteboardTypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -232,7 +232,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wObj) {
 		String message = "";
 		try {
-			message = EntryHandler.toJson(wObj);
+			message = WhiteboardHandler.toJson(wObj);
 		} catch (UnknownWhiteboardTypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
