@@ -26,14 +26,12 @@
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
     <script type="text/javascript" src="Whiteboard.js"></script>
     <script type="text/javascript" src="map.js"></script>
-    <script type="text/javascript" src="playerTable.js"></script>
     <script type="text/javascript" src="prototype.js"></script>
     <script type="text/javascript" src="dropDownMenu.js"></script>
 	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 	<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 	<script src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
 
-	<!--
     <script type="text/javascript">
         document.observe("dom:loaded", function() {
             function log(text) {
@@ -45,7 +43,7 @@
             }
 
             var ws;
-        	this.whiteboard = new Whiteboard();
+        	var whiteboard = new Whiteboard();
 
 
             //Aufbau der Websocketverbindung
@@ -59,78 +57,40 @@
                     var message = e.data;
                     if(message.startsWith("{")){
 	   					obj = JSON.parse(message);
-	   					if(!obj.path === null){
-	   						var changings = obj.path;
+	   					var changings = [];
+	   					var values = [];
+	   					if (obj.updatemode == "full"){
+	   						whiteboard = new Whiteboard();
+	   					}
+	   					if(!(obj.data == null)){
+	   						for(var i = 0; i<obj.data.length; i++){
+		   						changings[i] = obj.data[i].path;
+		   						values[i] = obj.data[i].value;
+	   						}
 	   					}
 		
 	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
-	       			this.whiteboard = update(changings, this.whiteboard);
-       					
+	       			whiteboard = update(changings, whiteboard, values);
+       				console.log(whiteboard);
    					}
                 }
+                    
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");
                 }
             });
-		
-        generate_table(this.whiteboard);
+
 
 
     </script>
-    -->
   </head>
   <body>
   	<h1>MDS-Monitoring Tool</>
     <div id="map-canvas" style= "width:900px; height:500px"> </div>
-   	<!-- <script language="javascript">
-		generate_table(this.whiteboard);
-	</script> -->
-	<script type="text/javascript">
-        document.observe("dom:loaded", function() {
-            function log(text) {
-                $("log").innerHTML = (new Date).getTime() + ": " + (!Object.isUndefined(text) && text !== null ? text.escapeHTML() : "null") + $("log").innerHTML;
-            }
+      <!--  <div id="panel">
 
-            if (!window.WebSocket) {
-                alert("FATAL: WebSocket not natively supported. This demo will not work!");
-            }
-
-            var ws;
-        	this.whiteboard = new Whiteboard();
-
-
-            //Aufbau der Websocketverbindung
-                ws = new WebSocket("ws://feijnox.no-ip.org:8000");
-                ws.onopen = function() {
-                    log("[WebSocket#onopen]\n");
-
-                }
-                ws.onmessage = function(e) {
-                    log("[WebSocket#onmessage] Message: '" + e.data + "'\n");
-                    var message = e.data;
-                    if(message.startsWith("{")){
-	   					obj = JSON.parse(message);
-	   					if(!obj.path === null){
-	   						var changings = obj.path;
-	   					}
-		
-	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
-	       			this.whiteboard = update(changings, this.whiteboard);
-       					
-   					}
-                }
-                ws.onclose = function() {
-                    log("[WebSocket#onclose]\n");
-                }
-            });
-		
-        generate_table(this.whiteboard);
-
-
-    </script>
-	<input type="button" value="Delete a table." onclick="delete_table()">
-	<input type="button" value="Generate a table." onclick="generate_table()">
-  
+      <input onclick="deletePlayers();" type=button value="Delete Players">-->
+    </div>
       <form><textarea id="log" rows="30" cols="100" style="font-family:monospace; color:red;"></textarea></form><br>
 
   </body>
