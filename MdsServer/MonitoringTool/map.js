@@ -6,10 +6,10 @@
 	var players=[];
 	// array for item marker
 	var items = [];
+
 	// array for DropDown information
 	var playersDiv = [];
     var dropDown1;
- // this.whiteboard = new Whiteboard();
 
 	// initializing player information window
 	function createInfoWindowContent(marker) {	
@@ -23,29 +23,33 @@
 	}
 	
 	// major update function
-	function update(data, qwhiteboard){
+	function update(changings, qwhiteboard, values){
 		var whiteboard = qwhiteboard;
-		updateWhiteboard(data, whiteboard);
+		updateWhiteboard(changings, whiteboard, values);
 		updateMarker(whiteboard);
-		updateDropDown(whiteboard);
+		updateItems(whiteboard.Bombs, 'bomb');
+		updateItems(whiteboard.Medipacks, 'medi');
 		
 		return whiteboard;
 	
 	}
 	
 	//updating Whiteboard
-	function updateWhiteboard(changings, whiteboard){
-		var value = whiteboard.getValue(changings);
-		var keys = changings.split(',');
-	
-		whiteboard.setAttribute(whiteboard, keys, value);
-		console.log(this.whiteboard);
+	function updateWhiteboard(changings, whiteboard, values){			
+		for (var i = 0; i < changings.length; i++){
+			 var keys = changings[i].split(',');
+			 var value = values[i];
+			 if(keys != null){
+				 whiteboard.setAttribute(whiteboard, keys, value);
+
+			 }			 
+		}
 	}
 	
 	// updating player markers
 	function updateMarker(whiteboard) {
 		var totalmarkers  = whiteboard.Players;
-		for (i = 0; i < totalmarkers; i++) {
+		for (var i in totalmarkers) {
 			var myLatlng = new google.maps.LatLng(totalmarkers[i].latitude, totalmarkers[i].longitude);
 			
 		    if (players[i] == null) { // Create new marker if player does not already exists
@@ -53,7 +57,7 @@
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
-		        	title: 'Player ' + totalmarkers[i].id.toString()   
+		        	title: 'Player ' + totalmarkers[i].health.toString()   
 		        });
 			    alert('Neuer Spieler: ' + players[i].title);
 		        
@@ -63,10 +67,10 @@
 		}
 		
 		
-		playersDiv = null;
+	//	playersDiv = [];
 		// initializing clicklistener for player markers
-		for(var i = 0; i < players.length; i++){
-			google.maps.event.addListener(marker, 'click', function() {
+		for(var i in players){
+			google.maps.event.addListener(players[i], 'click', function() {
 			    
 				var coordInfoWindow = new google.maps.InfoWindow();
 				coordInfoWindow.setContent(createInfoWindowContent(players[i]));
@@ -82,24 +86,23 @@
 					     centerPlayer(players[i], map);
 					 }
 				}
-			playersDiv.push(divOptions);
+		//	playersDiv.push(divOptions);
 
 		}
 	}
 	
 	// Updating the itemmarkers
-	function updateItems(whiteboard) {
-		var totalItems  = whiteboard.Items;
-		for (i = 0; i < totalItems; i++) {
+	function updateItems(totalItems, image) {
+		for (var i in totalItems) {
 			var myLatlng = new google.maps.LatLng(totalItems[i].latitude, totalItems[i].longitude);
-			
 		    if (items[i] == null) { // Create new marker if not already exist
 		        items[i] = new google.maps.Marker({
+		        	
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
-		        	title: 'Item ' + totalItems[i].name.toString(),
-		        	icon: 'images/bomb.png'
+		        	title: 'Item ' + totalItems[i].title.toString(),
+		        	icon: 'images/'+ image + '.png'
 		        });
 		        
 		    } else { // update the marker
@@ -107,10 +110,8 @@
 		    }
 		}
 
-		
-		for(var i = 0; i < items.length; i++){
-			google.maps.event.addListener(marker, 'click', function() {
-			    
+		for(var i in items){
+			google.maps.event.addListener(items[i], 'click', function() {
 				var coordInfoWindow = new google.maps.InfoWindow();
 				coordInfoWindow.setContent(createInfoWindowContent(items[i]));
 				coordInfoWindow.open(map, items[i]);

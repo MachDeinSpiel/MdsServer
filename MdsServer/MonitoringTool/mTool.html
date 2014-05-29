@@ -43,7 +43,7 @@
             }
 
             var ws;
-        	this.whiteboard = new Whiteboard();
+        	var whiteboard = new Whiteboard();
 
 
             //Aufbau der Websocketverbindung
@@ -57,15 +57,24 @@
                     var message = e.data;
                     if(message.startsWith("{")){
 	   					obj = JSON.parse(message);
-	   					if(!obj.path === null){
-	   						var changings = obj.path;
+	   					var changings = [];
+	   					var values = [];
+	   					if (obj.updatemode == "full"){
+	   						whiteboard = new Whiteboard();
+	   					}
+	   					if(!(obj.data == null)){
+	   						for(var i = 0; i<obj.data.length; i++){
+		   						changings[i] = obj.data[i].path;
+		   						values[i] = obj.data[i].value;
+	   						}
 	   					}
 		
 	   					//Updatefunktion zur aktualisierung der Standortdaten der Spieler
-	       			this.whiteboard = update(changings, this.whiteboard);
-       					
+	       			whiteboard = update(changings, whiteboard, values);
+       				console.log(whiteboard);
    					}
                 }
+                    
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");
                 }
