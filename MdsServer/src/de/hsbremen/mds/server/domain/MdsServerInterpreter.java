@@ -100,7 +100,13 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 		if (player == null) {
 			try {
-				player = new WhiteboardEntry(playerName, "all");
+				// TODO: Hier mal die Struktur fest gecoded, muss noch dynamisch aus der JSON ausgelesen werden
+				Whiteboard playerAtt = new Whiteboard();
+				playerAtt.put("health", new WhiteboardEntry(1000, "none"));
+				playerAtt.put("latitude", new WhiteboardEntry("null", "none"));
+				playerAtt.put("longitude", new WhiteboardEntry("null", "none"));	
+				
+				player = new WhiteboardEntry(playerAtt, "all");
 			} catch (InvalidWhiteboardEntryException e) {
 				e.printStackTrace();
 			}
