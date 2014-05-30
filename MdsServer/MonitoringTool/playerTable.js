@@ -12,10 +12,12 @@ function delete_table()	{
 
 function generate_table(whiteboard) {
 	
-	if (whiteboard) {
-		var wb = whiteboard.Players;
-		console.log("whiteboard: " + wb);
-	}
+	var wb = whiteboard;
+	console.log(wb);
+//	if (whiteboard) {
+//		var wb = whiteboard.Players;
+//		console.log("whiteboard: " + wb);
+//	}
 //	var wp = whiteboard.Players;
 //	var wph = whiteboard.Players.health;
 //	console.log("whiteboard Players: " + wp);
@@ -29,7 +31,6 @@ function generate_table(whiteboard) {
 	var tbl = document.createElement("table");
 	tbl.setAttribute('id','players_table');
 	tbl.setAttribute('border','2');
-	console.log(tbl);
   var tblBody = document.createElement("tbody");
   
 //  counter (entspricht anz Spieler) and table content
