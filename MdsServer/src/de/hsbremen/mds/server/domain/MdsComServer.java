@@ -352,10 +352,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 	private void printState() {
-		
+		System.out.println("\n---------------- STATS ----------------");
 		System.out.println(this.playingClients.size() + " Player(s) playing");
 		System.out.println(this.waitingClients.size() + " Player(s) in the Lobby");
-		System.out.println(this.mdsInterpreters.size() + " Interpreter(s) currently running");
+		System.out.println(this.mdsInterpreters.size() + " Interpreter(s) currently running\n");
 		
 	}
 
