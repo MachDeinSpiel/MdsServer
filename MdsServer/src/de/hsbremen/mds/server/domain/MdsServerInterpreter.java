@@ -1,15 +1,13 @@
 package de.hsbremen.mds.server.domain;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.java_websocket.WebSocket;
-
-import com.sun.org.apache.bcel.internal.generic.InstructionConstants.Clinit;
 
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
@@ -24,7 +22,7 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	private MdsComServer comServer;
 	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
 	//Websockets Hashmap...
-	private Map<String,WebSocket> clients = new HashMap<String, WebSocket>();
+	private Map<String,WebSocket> clients = new ConcurrentHashMap<String, WebSocket>();
 
 	
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
