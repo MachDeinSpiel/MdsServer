@@ -187,13 +187,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			int gameID = this.playingClients.get(conn);
 			this.mdsInterpreters.get(gameID).onLostConnection(conn);
 			int activeplayers = (Integer) this.getActiveGamesValue(gameID, "activeplayers") - 1;
-			System.out.println("Active players: " + activeplayers + " in Game " + gameID );
 			if(activeplayers > 0) {
 				this.updateActiveGames(gameID, "activeplayers", activeplayers);
-				System.out.println("Active players updated");
 			} else {
 				this.updateActiveGames(gameID, null, null);
-				System.out.format("Game %d killed\n", gameID);
 			}
 			
 			this.playingClients.remove(conn);
@@ -301,9 +298,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private void notifyLobby() {
 		for(WebSocket ws : this.waitingClients) {
 			ws.send(this.activeGames.toString());
-		}
-		System.out.println("Lobby Update");
-		
+		}		
 	}
 
 	public void onFragment(WebSocket conn, Framedata fragment) {
