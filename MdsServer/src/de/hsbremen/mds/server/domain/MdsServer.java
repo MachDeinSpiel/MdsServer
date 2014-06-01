@@ -21,7 +21,7 @@ public class MdsServer {
 		InputStream is = null;
 		
 		try {
-			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/config.json").openStream();
+			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/devMultigame/config.json").openStream();
 		} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -62,8 +62,7 @@ public class MdsServer {
 
 		// Ueberprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("JSON Einlesen erfolgreich.");
-			System.out.println(json.length());
+			System.out.println("JSON Einlesen erfolgreich: " + json.length());
 		} else {
 			System.out.println("JSON Einlesen fehlgeschlagen");
 		}

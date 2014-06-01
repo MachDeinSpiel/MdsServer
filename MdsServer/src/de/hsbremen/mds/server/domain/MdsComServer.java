@@ -39,7 +39,8 @@ import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private JSONObject gamesJSON;
+	private JSONObject gameTemplates;
+	private JSONObject activeGames;
 	private Map<Integer, MdsServerInterpreter> mdsInterpreters;
 	private List<WebSocket> waitingClients;
 	private Map<WebSocket, Integer> playingClients;
@@ -47,16 +48,17 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 	public MdsComServer(int port, File file) throws UnknownHostException {
 		super(new InetSocketAddress(port));
-		this.initInterpreters(file);
+		this.initGames(file);
 		this.waitingClients = new Vector<WebSocket>();
 		this.playingClients = new HashMap<WebSocket, Integer>();
+		this.mdsInterpreters = new ConcurrentHashMap<Integer, MdsServerInterpreter>();
 	}
 
 	public MdsComServer(InetSocketAddress address) {
 		super(address);
 	}
 	
-	private void initInterpreters(File file) {
+	private void initGames(File file) {
 		JSONObject json = null;
 		JSONParser jP = new JSONParser();
 		try {
@@ -75,19 +77,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			e.printStackTrace();
 		}
 		
-		this.gamesJSON = json;
-		
-		JSONArray gamesArray = (JSONArray) this.gamesJSON.get("games");
-		this.mdsInterpreters = new ConcurrentHashMap<Integer, MdsServerInterpreter>();
-		/*
-		for	(int i = 0; i < gamesArray.length(); i++) {
-			JSONObject game = (JSONObject) gamesArray.get(i);
-			String url = game.get("serverurl").toString();
-			System.out.println("\nNew Interpreter with " + url);
-			MdsServerInterpreter mdsSI = new MdsServerInterpreter(this, this.jsonEinlesen(url));
-			this.mdsInterpreters.add(mdsSI);	
-		}
-		*/
+		this.gameTemplates = json;
+		this.activeGames = new JSONObject();
+		this.activeGames.put("mode", "activegames");
+		this.activeGames.put("games", new JSONArray());
 	}
 	
 	private MdsServerInterpreter createInterpreterFromURL(String url) {
@@ -97,39 +90,89 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 	
-	private void updateGameInfo(int gameID, String key, Object value){
-		JSONObject theGame = (JSONObject) this.gamesJSON.getJSONArray("games").get(gameID);
-		/*Object theValue = theGame.get(key);
-		if (theValue.getClass() == String.class) {
-			theValue = (String)theValue + (String)value;
-		} else if (theValue.getClass() == Integer.class) {
-			theValue = (Integer)theValue + (Integer)value;
-		} else if (theValue.getClass() == Float.class) {
-			theValue = (Float)theValue + (Float)value;
-		}*/
-		theGame.remove(key);
-		theGame.put(key, value);
+	private synchronized boolean updateGamesTemplate(int gameID, String key, Object value){
+		JSONArray gamesArray = this.gameTemplates.getJSONArray("games");
+		
+		// Aenderung an einem bestehenden Spiel
+		if (gameID < gamesArray.length()-1) {
+			JSONObject theGame = (JSONObject) gamesArray.get(gameID);
+			theGame.remove(key);
+			theGame.put(key, value);
+			return true;
+		}
+		
+		// neues Spiel hinzufuegen
+		if (gameID > gamesArray.length()-1 && value.getClass().equals(JSONObject.class)) {
+			gamesArray.put(value);	
+			return true;
+		}
+		
+		// Spiel entfernen
+		if (gameID < gamesArray.length()-1 && key == null && value == null) {
+			gamesArray.remove(gameID);
+			return true;
+		}
+	
+		return false;
+		
 	}
 	
-	private Object getGameInfoValue(int gameID, String key) {
-		JSONObject theGame = (JSONObject) this.gamesJSON.getJSONArray("games").get(gameID);
-		return theGame.get(key);
+	private synchronized boolean updateActiveGames(int gameID, String key, Object value){
+		JSONArray gamesArray = this.activeGames.getJSONArray("games");
 		
+		// neues Spiel hinzufuegen
+		if (gameID == -1 && value.getClass().equals(JSONObject.class)) {
+			gamesArray.put(value);
+			System.out.println("neues Spiel hinzufuegen");
+			return true;
+		}
+		
+		JSONObject theGame = null;
+		int theGameID = 0;
+		
+		// Bestehendes Spiel finden
+		for (int i = 0; i < gamesArray.length(); i++) {
+			theGame = ((JSONObject) gamesArray.get(i));
+			theGameID = (int) theGame.get("id");
+			if (theGameID == gameID) {
+				break;
+			}
+			
+		}
+		
+		if (theGame == null) {
+			// Spiel mit gameID nicht vorhanden
+			return false;
+		}
+				
+		// Spiel entfernen
+		if (key == null && value == null) {
+			gamesArray.remove(gameID);
+			return true;
+		} else {
+			// Aenderung an einem bestehenden Spiel
+			theGame.remove(key);
+			theGame.put(key, value);
+			return true;
+		}
+		
+	}
+	
+	private Object getGameTemplateValue(int gameID, String key) {
+		JSONObject theGame = (JSONObject) this.gameTemplates.getJSONArray("games").get(gameID);
+		return theGame.get(key);
+	}
+	
+	private Object getActiveGamesValue(int gameID, String key) {
+		JSONObject theGame = (JSONObject) this.activeGames.getJSONArray("games").get(gameID);
+		return theGame.get(key);
 	}
 	
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		/*this.mdsServerInterpreter.addNewClient(conn);
-		clients.put(idcount++, conn);
-		this.sendToAll("new connection: " + handshake.getResourceDescriptor() );
-		System.out.println(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " entered the room!");
-		*/
-
 		this.waitingClients.add(conn);
-		conn.send(this.gamesJSON.toString());
-		
-		System.out.println(handshake.getResourceDescriptor());
+		System.out.println("New Client: " + handshake.getResourceDescriptor());
 		this.printState();
 	}
 
@@ -143,13 +186,22 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		if (this.playingClients.containsKey(conn)) {
 			int gameID = this.playingClients.get(conn);
 			this.mdsInterpreters.get(gameID).onLostConnection(conn);
-			int activeplayers = (Integer) this.getGameInfoValue(gameID, "activeplayers") - 1;
-			this.updateGameInfo(gameID, "activeplayers", activeplayers);
-			this.notifyLobby();
+			int activeplayers = (Integer) this.getActiveGamesValue(gameID, "activeplayers") - 1;
+			System.out.println("Active players: " + activeplayers + " in Game " + gameID );
+			if(activeplayers > 0) {
+				this.updateActiveGames(gameID, "activeplayers", activeplayers);
+				System.out.println("Active players updated");
+			} else {
+				this.updateActiveGames(gameID, null, null);
+				System.out.format("Game %d killed\n", gameID);
+			}
+			
 			this.playingClients.remove(conn);
 			if(!this.playingClients.containsValue(gameID)) {
 				this.mdsInterpreters.remove(gameID);
 			}
+			
+			this.notifyLobby();
 			
 		}
 		
@@ -179,8 +231,12 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			//System.out.println(conn + ": " + message);
 			
 			
-			if (mes.get("mode").equals("games")) {
-				conn.send(this.gamesJSON.toString());
+			if (mes.get("mode").equals("gametemplates")) {
+				conn.send(this.gameTemplates.toString());
+			}
+			
+			if (mes.get("mode").equals("activegames")) {
+				conn.send(this.activeGames.toString());
 			}
 			
 		} catch (JSONException e) {
@@ -192,11 +248,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 	}
 
-	private void assignInterpreter(WebSocket conn, JSONObject mes) {
-		String mode = mes.getString("mode");
-		int id = mes.getInt("id");
-		String name = mes.getString("name");
-		JSONArray gamesArray = (JSONArray) this.gamesJSON.get("games");
+	private synchronized void assignInterpreter(WebSocket conn, JSONObject mess) {
+		String mode = mess.getString("mode");
+		int id = mess.getInt("id");
+		String name = mess.getString("name");
+		JSONArray gamesTemplateArray = (JSONArray) this.gameTemplates.get("games");
 		
 		if (mode.equals("join")){
 			
@@ -204,32 +260,35 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				this.mdsInterpreters.get(id).onNewConnection(conn, name);
 				this.waitingClients.remove(conn);
 				this.playingClients.put(conn, id);
-				int activeplayers = (Integer) this.getGameInfoValue(id, "activeplayers") + 1;
-				this.updateGameInfo(id, "activeplayers", activeplayers);
-			}			
-			
+				int activeplayers = (Integer) this.getActiveGamesValue(id, "activeplayers") + 1;
+				this.updateActiveGames(id, "activeplayers", activeplayers);
+			} else {
+				// Send Error
+			}
 		}
 		
-		if (mode.equals("create") || (mode.equals("join") && !this.mdsInterpreters.containsKey(id))){
+		if (mode.equals("create")){
 			
-			String url = (String) this.getGameInfoValue(id, "serverurl");
+			// Neuen Interpreter erstellen und WebSocket uebergeben
+			String url = (String) this.getGameTemplateValue(id, "serverurl");
 			MdsServerInterpreter mdsSI = this.createInterpreterFromURL(url);
 			mdsSI.onNewConnection(conn, name);
-			if(mode.equals("create")) {
-				JSONObject interpreterInfo = new JSONObject(((JSONObject) gamesArray.get(id)).toString());
-				id = gamesArray.length();
-				interpreterInfo.remove("id");
-				interpreterInfo.put("id", id);
-				interpreterInfo.remove("activeplayers");
-				interpreterInfo.put("activeplayers", 1);
-				gamesArray.put(interpreterInfo);
-				this.gamesJSON.remove("games");
-				this.gamesJSON.put("games", gamesArray);
-			} else {
-				int activePlayers = (Integer) this.getGameInfoValue(id, "activeplayers") + 1;
-				this.updateGameInfo(id, "activeplayers", activePlayers);
+			
+			// Template holen
+			JSONObject newGameInfo = new JSONObject(((JSONObject) gamesTemplateArray.get(id)).toString());
+			
+			// Freie gameID finden
+			id = 0;
+			while(this.mdsInterpreters.containsKey(id)){
+				id++;
 			}
-						
+			// ActiveGames aktualisieren
+			newGameInfo.remove("id");
+			newGameInfo.put("id", id);
+			newGameInfo.put("activeplayers", 1);
+			this.updateActiveGames(-1, null, newGameInfo);
+			
+			// Objekte wegsortieren
 			this.mdsInterpreters.put(id, mdsSI);
 			this.waitingClients.remove(conn);
 			this.playingClients.put(conn, id);
@@ -241,14 +300,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	private void notifyLobby() {
 		for(WebSocket ws : this.waitingClients) {
-			ws.send(this.gamesJSON.toString());
+			ws.send(this.activeGames.toString());
 		}
 		System.out.println("Lobby Update");
 		
 	}
 
 	public void onFragment(WebSocket conn, Framedata fragment) {
-//		System.out.println("received fragment: " + fragment);
+		//		System.out.println("received fragment: " + fragment);
 	}
 	
 	
