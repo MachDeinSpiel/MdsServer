@@ -40,14 +40,16 @@
 	function updateMarker(whiteboard) {
 		var totalmarkers  = whiteboard.Players;
 		for (var i in totalmarkers) {
-			var myLatlng = new google.maps.LatLng(totalmarkers[i].latitude, totalmarkers[i].longitude);
-			
+			var myLatlng = null;
+			if((typeof totalmarkers[i].latitude !='undefined') &&  (typeof totalmarkers[i].latitude !='undefined')){
+				myLatlng = new google.maps.LatLng(totalmarkers[i].latitude, totalmarkers[i].longitude);
+			}
 		    if (players[i] == null) { // Create new marker if player does not already exists
 		        players[i] = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
-		        	title: 'Player ' + totalmarkers[i].health.toString()   
+		        	title: 'Player ' + totalmarkers[i].toString()
 		        });
 			    alert('Neuer Spieler: ' + players[i].title);
 		        

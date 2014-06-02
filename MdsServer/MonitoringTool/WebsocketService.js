@@ -9,8 +9,10 @@ function WebsocketService(){
                 ws = new WebSocket("ws://195.37.176.178:1387"); //feijnox.no-ip.org:8000
                 ws.onopen = function() {
                 	document.getElementById('log').value = "[WebSocket#onopen]\n";
+                	ws.send('{"mode":"activegames"}');
 
                 }
+                
                 ws.onmessage = function(e) {
                 	document.getElementById('log').value = "[WebSocket#onmessage] Message: '" + e.data + "'\n";
                     var message = e.data;
@@ -33,6 +35,7 @@ function WebsocketService(){
        				console.log(whiteboard);
    					}
                 }
+                
                 onSendMessage = function(){
                 	var message = '{"mode":"join","id":0,"name":"Monitoring"}'
                 	document.getElementById('log').value = "[WebSocket#onmessage] Message: '" + message + "'\n";
