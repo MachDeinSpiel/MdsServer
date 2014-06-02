@@ -133,7 +133,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		// Bestehendes Spiel finden
 		for (int i = 0; i < gamesArray.length(); i++) {
 			theGame = ((JSONObject) gamesArray.get(i));
-			theGameID = (int) theGame.get("id");
+			theGameID = (Integer) theGame.get("id");
 			if (theGameID == gameID) {
 				break;
 			}
@@ -245,7 +245,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 	}
 
-	private synchronized void assignInterpreter(WebSocket conn, JSONObject mess) {
+	private synchronized boolean assignInterpreter(WebSocket conn, JSONObject mess) {
 		String mode = mess.getString("mode");
 		int id = mess.getInt("id");
 		String name = mess.getString("name");
@@ -254,13 +254,21 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		if (mode.equals("join")){
 			
 			if (this.mdsInterpreters.containsKey(id)) {
-				this.mdsInterpreters.get(id).onNewConnection(conn, name);
-				this.waitingClients.remove(conn);
-				this.playingClients.put(conn, id);
-				int activeplayers = (Integer) this.getActiveGamesValue(id, "activeplayers") + 1;
-				this.updateActiveGames(id, "activeplayers", activeplayers);
+				int maxPlayers = (Integer) this.getActiveGamesValue(id, "maxplayers");
+				int activePlayers = (Integer) this.getActiveGamesValue(id, "activeplayers");
+				if (maxPlayers > activePlayers) {
+					this.mdsInterpreters.get(id).onNewConnection(conn, name);
+					this.waitingClients.remove(conn);
+					this.playingClients.put(conn, id);
+					activePlayers++;
+					this.updateActiveGames(id, "activeplayers", activePlayers);
+				} else {
+					return false;
+					// TODO: Send Error
+				}
 			} else {
-				// Send Error
+				return false;
+				// TODO: Send Error
 			}
 		}
 		
@@ -270,6 +278,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			String url = (String) this.getGameTemplateValue(id, "serverurl");
 			MdsServerInterpreter mdsSI = this.createInterpreterFromURL(url);
 			mdsSI.onNewConnection(conn, name);
+			
+			// Maxplayers auslesen
+			int maxPlayers = (Integer) mess.get("maxplayers");
 			
 			// Template holen
 			JSONObject newGameInfo = new JSONObject(((JSONObject) gamesTemplateArray.get(id)).toString());
@@ -283,6 +294,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			newGameInfo.remove("id");
 			newGameInfo.put("id", id);
 			newGameInfo.put("activeplayers", 1);
+			newGameInfo.put("maxplayers", maxPlayers);
+			
 			this.updateActiveGames(-1, null, newGameInfo);
 			
 			// Objekte wegsortieren
@@ -293,6 +306,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		}
 		
 		this.notifyLobby();
+		return true;
 	}
 
 	private void notifyLobby() {
@@ -338,6 +352,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		conn.send(message);
 	}
 	
+	@Override
 	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wObj) {
 		String message = "";
 		try {
