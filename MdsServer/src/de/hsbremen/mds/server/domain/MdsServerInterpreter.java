@@ -1,12 +1,19 @@
 package de.hsbremen.mds.server.domain;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.java_websocket.WebSocket;
 
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
@@ -100,18 +107,49 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 
 			try {
 				player = new WhiteboardEntry(playerName, "all");
-				/*
-				// TODO: Hier mal die Struktur fest gecoded, muss noch dynamisch aus der JSON ausgelesen werden
-				Whiteboard playerAtt = new Whiteboard();
-				playerAtt.put("health", new WhiteboardEntry(1000, "none"));
-				playerAtt.put("latitude", new WhiteboardEntry("null", "none"));
-				playerAtt.put("longitude", new WhiteboardEntry("null", "none"));	
-				
-				player = new WhiteboardEntry(playerAtt, "all");
-				*/
-			} catch (InvalidWhiteboardEntryException e) {
-				e.printStackTrace();
-			}
+
+				/* ---- parsen des player templates ---- */
+				JSONParser parser = new JSONParser();
+
+				try {
+					Object obj = parser.parse(new FileReader("https://github.com/MachDeinSpiel/MdsJsons/blob/master/BombDefuser_Server.json"));
+
+					JSONObject jsonObject = (JSONObject) obj;
+					
+					/* ---- aus der JSON datei lesen ---- */
+					int health; 
+					String latitude, longitude;
+					
+					JSONArray players_array = (JSONArray) jsonObject.get("Players"); //get all Players
+					
+					// DONE: Hier mal die Struktur fest gecoded, muss noch dynamisch aus der JSON ausgelesen werden
+					for(int i = 0; i < players_array.size(); i++) {
+						JSONObject the_player = (JSONObject) players_array.get(i);
+
+						// attribute werden aus dem JSONObject gelesen
+						health = Integer.parseInt(the_player.get("health").toString());
+						latitude = (String) the_player.get("latitude");
+						longitude = (String) the_player.get("longitude");
+						
+						// das eingelesenen Attribute werden ins whiteboard gepackt
+						Whiteboard playerAtt = new Whiteboard();
+						playerAtt.put("health", new WhiteboardEntry(health, "none"));
+						playerAtt.put("latitude", new WhiteboardEntry(latitude, "none"));
+						playerAtt.put("longitude", new WhiteboardEntry(longitude, "none"));	
+						
+						// das Attribut-Whiteboard wird zum Player-Whiteboard hinzugefügt
+						player = new WhiteboardEntry(playerAtt, "all");
+					}
+				//try{} end
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				} catch (NullPointerException e) {
+					e.printStackTrace();
+				}
 		
 			
 			this.clients.put("Players," + playerName, conn);
