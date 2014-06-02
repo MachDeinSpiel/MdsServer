@@ -6,6 +6,8 @@
 	var players=[];
 	// array for item marker
 	var items = [];
+	
+	var message = null;
 
 	// array for DropDown information
 	var playersDiv = [];
@@ -25,25 +27,13 @@
 	// major update function
 	function update(changings, qwhiteboard, values){
 		var whiteboard = qwhiteboard;
-		updateWhiteboard(changings, whiteboard, values);
+		whiteboard.updateWhiteboard(changings, whiteboard, values);
 		updateMarker(whiteboard);
 		updateItems(whiteboard.Bombs, 'bomb');
 		updateItems(whiteboard.Medipacks, 'medi');
 		
 		return whiteboard;
 	
-	}
-	
-	//updating Whiteboard
-	function updateWhiteboard(changings, whiteboard, values){			
-		for (var i = 0; i < changings.length; i++){
-			 var keys = changings[i].split(',');
-			 var value = values[i];
-			 if(keys != null){
-				 whiteboard.setAttribute(whiteboard, keys, value);
-
-			 }			 
-		}
 	}
 	
 	// updating player markers
@@ -205,7 +195,17 @@
 	      	}
 	   }
 	   var button1 = new buttonControl(buttonOptions);
-	            
+	    
+	    /*var buttonOptions = {
+		    	gmap: map,
+		      	name: 'Join BombDefuser',
+		      	position: google.maps.ControlPosition.TOP_RIGHT,
+		      	action: function(){
+		      		showBombDefuser();    			
+		      	}
+		}
+		var button1 = new buttonControl(buttonOptions);
+	         */   
 	}
 
 google.maps.event.addDomListener(window, 'load', initialize);

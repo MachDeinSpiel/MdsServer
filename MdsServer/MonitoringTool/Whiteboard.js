@@ -1,5 +1,16 @@
 function Whiteboard() {
 	
+	//updating Whiteboard
+	Whiteboard.prototype.updateWhiteboard = function (changings, whiteboard, values){			
+		for (var i = 0; i < changings.length; i++){
+			 var keys = changings[i].split(',');
+			 var value = values[i];
+			 if(keys != null){
+				 whiteboard.setAttribute(whiteboard, keys, value);
+
+			 }			 
+		}
+	}
 
 		Whiteboard.prototype.setAttribute = function(base, keys, value){
 			// Function: createNestedObject( base, names[, value] )
