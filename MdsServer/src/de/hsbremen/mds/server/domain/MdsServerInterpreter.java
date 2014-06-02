@@ -9,22 +9,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.java_websocket.WebSocket;
-
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
-import de.hsbremen.mds.common.interfaces.ServerInterpreterInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServerNew;
 
-public class MdsServerInterpreter implements ServerInterpreterInterface, ComServerInterface {
+public class MdsServerInterpreter implements ComServerInterface {
 	private Whiteboard whiteboard = new Whiteboard();
 	private MdsComServer comServer;
 	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
@@ -60,14 +57,6 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 		
 	}
 
-	/**
-	 * Lokales WB aktualisieren
-	 */
-	@Override
-	public void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
-		String [] key = this.getStringArrayPath(keys);
-		this.whiteboard.setAttribute(value, key);
-	}
 	
 	/**
 	 * Client kompletten WB senden
@@ -162,10 +151,15 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 			this.onWhiteboardUpdate(conn, keys, player);
 			
 			return true;
-		}	
+			
+		}catch(Exception e){
+			
+		}
 		
+		}
 		return false;
-	}
+		
+	}	
 	/**
 	 * 
 	 * 
@@ -223,7 +217,17 @@ public class MdsServerInterpreter implements ServerInterpreterInterface, ComServ
 	 * Private Methoden
 	 * 
 	 */
-	
+
+	/**
+	 * Locales Whiteboard Update
+	 * 
+	 * @param keys
+	 * @param value
+	 */
+	private void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
+		String [] key = this.getStringArrayPath(keys);
+		this.whiteboard.setAttribute(value, key);
+	}
 	
 	/**
 	 * 
