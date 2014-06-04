@@ -3,13 +3,20 @@
   <head>
     <title>WebSocket Chat Client</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+    <link href="normalize.css" media="all" rel="stylesheet" type="text/css"/>
+	<link href="style.css" media="all" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="prototype.js"></script>
 
     <script type="text/javascript">
         document.observe("dom:loaded", function() {
+        
+        	var date = new Date();
+        	var hours = date.getHours();
+        	var minutes = date.getMinutes();
+        	var seconds = date.getSeconds();
+        
             function log(text) {
-                $("log").innerHTML = (new Date).getTime() + ": " + (!Object.isUndefined(text) && text !== null ? text.escapeHTML() : "null") + $("log").innerHTML;
+                $("log").innerHTML = hours + ":" + minutes + ":" + seconds + " : " + (!Object.isUndefined(text) && text !== null ? text.escapeHTML() : "null") + $("log").innerHTML;
             }
 
             if (!window.WebSocket) {
@@ -22,10 +29,10 @@
                 e.stop();
                 ws = new WebSocket($F("uri"));
                 ws.onopen = function() {
-                    log("[WebSocket#onopen]\n");
+                    log("Connected\n");
                 }
                 ws.onmessage = function(e) {
-                    log("[WebSocket#onmessage] Message: \n'" + e.data + "'\n");
+                    log("Message: \n\n'" + e.data + "'\n\n");
                 }
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");
@@ -42,9 +49,9 @@
                 if (ws) {
                     var textField = $("textField");
                     ws.send(textField.value);
-                    log("[WebSocket#send]      Send:    '" + textField.value + "'\n");
+                    //log("[WebSocket#send]      Send:    '" + textField.value + "'\n");
                     textField.value = "";
-                    textField.focus();
+                    //textField.focus();
                 }
             });
 
@@ -56,24 +63,33 @@
                 }
             });
         });
+        
+        
     </script>
   </head>
   <body>
-      <form id="uriForm"><input type="text" id="uri" value="ws://localhost:8887" style="width:200px;"> <input type="submit" id="connect" value="Connect"><input type="button" id="disconnect" value="Disconnect" disabled="disabled"></form><br>
-      <form id="sendForm"><input type="text" id="textField" value="" style="width:200px;"> <input type="submit" value="Send"></form><br>
-      <form><textarea readonly id="log" rows="30" cols="100" style="font-family:monospace; color:red;"></textarea></form><br>
-      <p style="font-family:sans-serif;">
-	Verfügbare Spiele anfordern<br />
-	<span style="font-family:monospace;">{"mode":"gametemplates"}</span><br />
-	<br />
-	Laufende Spiele anfordern<br />
-	<span style="font-family:monospace;">{"mode":"activegames"}</span><br />
-	<br />
-	Spiel joinen<br />
-	<span style="font-family:monospace;">{"mode":"join","id":0,"name":"Peter"}</span><br />
-	<br />
-	Spiel erstellen (Initialspieler)<br />
-	<span style="font-family:monospace;">{"mode":"create","id":0,"name":"Peter","maxplayers":2}</span><br />
-      </p>
+    <form id="uriForm"><input type="text" id="uri" value="ws://localhost:8887" style="width:200px;" class="styled-button"> 
+    <input type="submit" id="connect" value="Connect" class="styled-button"> <input type="button" id="disconnect" value="Disconnect" disabled="disabled" class="styled-button"></form>
+    
+    <form id="sendForm"><input type="text" id="textField" value="" class="styled-button">
+    <input type="submit" value="Send" class="styled-button">
+    <select id="dropdown" class="styled-button">
+    <option value=''>Nachricht auswählen</option>
+    <option value='{"mode":"gametemplates"}'>Verfügbare Spiele anfordern</option>
+    <option value='{"mode":"activegames"}'>Laufende Spiele anfordern</option>
+    <option value='{"mode":"join","id":0,"name":"Peter"}'>Spiel joinen</option>
+    <option value='{"mode":"create","id":0,"name":"Peter","maxplayers":2}'>Spiel erstellen (Initialspieler)</option>
+	</select>
+    </form>     
+    <form><textarea readonly id="log" rows="30" cols="100"></textarea></form><br>
   </body>
+  <script type="text/javascript">
+  		var mytextbox = document.getElementById('textField');
+		var mydropdown = document.getElementById('dropdown');
+
+		mydropdown.onclick = function(){
+			mytextbox.value = this.value;
+		}
+        
+    </script>
 </html>

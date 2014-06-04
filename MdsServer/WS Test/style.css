@@ -1,0 +1,85 @@
+body {
+	/*background: #EFEFEF;*/
+	margin-left: 10px;
+	margin-top: 10px;
+
+}
+
+form {
+	margin-top:10px;
+
+}
+
+#sendForm input:not([type=submit]):not([type=file])  {
+	font-family:monospace;
+	font-size: 0.9em;
+
+}    
+
+
+
+#textField {
+	width: 400px;
+}
+
+
+#dropdown {
+
+}
+
+#log {
+
+	font-family:monospace; 
+	font-size: 0.9em;
+	padding:5px 7px;
+	color:#333;
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	border:1px solid #0086cc
+	
+}
+
+
+.styled-button {
+	background: #0086cc;
+	background: -moz-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#0086cc),color-stop(100%,#009CF0));
+	background: -webkit-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: -o-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: -ms-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#0086cc', endColorstr='#009CF0',GradientType=0);
+	padding:5px 7px;
+	color:#fff;
+	/*font-family:'Helvetica Neue',sans-serif;*/
+	font-size:12px;
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	border:1px solid #0086cc
+}
+
+.styled-button[disabled] {
+	background: #0086cc;
+	background: -moz-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#0086cc),color-stop(100%,#009CF0));
+	background: -webkit-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: -o-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: -ms-linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	background: linear-gradient(top,#0086cc 0%,#009CF0 100%);
+	filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#0086cc', endColorstr='#009CF0',GradientType=0);
+	padding:5px 7px;
+	color:#CCC;
+	/*font-family:'Helvetica Neue',sans-serif;*/
+	font-size:12px;
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	border:1px solid #0086cc
+}
+    
+        
+
+
+
