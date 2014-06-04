@@ -74,11 +74,15 @@
     <form id="sendForm"><input type="text" id="textField" value="" class="styled-button">
     <input type="submit" value="Send" class="styled-button">
     <select id="dropdown" class="styled-button">
-    <option value=''>Nachricht auswählen</option>
-    <option value='{"mode":"gametemplates"}'>Verfügbare Spiele anfordern</option>
-    <option value='{"mode":"activegames"}'>Laufende Spiele anfordern</option>
-    <option value='{"mode":"join","id":0,"name":"Peter"}'>Spiel joinen</option>
-    <option value='{"mode":"create","id":0,"name":"Peter","maxplayers":2}'>Spiel erstellen (Initialspieler)</option>
+    <option value=''>---- Globale Lobby ----</option>
+    <option value='{"mode":"gametemplates"}'>1. Verfügbare Spiele anfordern</option>
+    <option value='{"mode":"activegames"}'>2. Laufende Spiele anfordern</option>
+    <option value='{"mode":"join","id":0,"name":"Peter"}'>3. Spiel joinen</option>
+    <option value='{"mode":"create","id":0,"name":"Peter","maxplayers":2}'>4. Spiel erstellen (Initialspieler)</option>
+    <option value=''>---- Spiele Lobby ----</option>
+    <option value='{"mode":"gamelobby", "action":"players"}'>1. Liste der Spieler anfordern</option>
+    <option value='{"mode":"gamelobby", "action":"kick", "player":1}'>2. Spieler kicken</option>
+    <option value='{"mode":"gamelobby", "action":"start"}'>3. Spiel starten</option>
 	</select>
     </form>     
     <form><textarea readonly id="log" rows="30" cols="100"></textarea></form><br>

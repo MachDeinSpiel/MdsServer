@@ -274,35 +274,37 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		if (mode.equals("create")){
 			
-			// Neuen Interpreter erstellen und WebSocket uebergeben
-			String url = (String) this.getGameTemplateValue(id, "serverurl");
-			MdsServerInterpreter mdsSI = this.createInterpreterFromURL(url);
-			mdsSI.onNewConnection(conn, name);
 			
-			// Maxplayers auslesen
-			int maxPlayers = (Integer) mess.get("maxplayers");
 			
-			// Template holen
-			JSONObject newGameInfo = new JSONObject(((JSONObject) gamesTemplateArray.get(id)).toString());
-			
-			// Freie gameID finden
-			id = 0;
-			while(this.mdsInterpreters.containsKey(id)){
-				id++;
+			if (((JSONArray)this.gameTemplates.get("games")).length() -1 >= id) {
+				// Neuen Interpreter erstellen und WebSocket uebergeben
+				String url = (String) this.getGameTemplateValue(id, "serverurl");
+				MdsServerInterpreter mdsSI = this.createInterpreterFromURL(url);
+				mdsSI.onNewConnection(conn, name);
+				// Maxplayers auslesen
+				int maxPlayers = (Integer) mess.get("maxplayers");
+				// Template holen
+				JSONObject newGameInfo = new JSONObject(
+						((JSONObject) gamesTemplateArray.get(id)).toString());
+				// Freie gameID finden
+				id = 0;
+				while (this.mdsInterpreters.containsKey(id)) {
+					id++;
+				}
+				// ActiveGames aktualisieren
+				newGameInfo.remove("id");
+				newGameInfo.put("id", id);
+				newGameInfo.put("activeplayers", 1);
+				newGameInfo.put("maxplayers", maxPlayers);
+				this.updateActiveGames(-1, null, newGameInfo);
+				// Objekte wegsortieren
+				this.mdsInterpreters.put(id, mdsSI);
+				this.waitingClients.remove(conn);
+				this.playingClients.put(conn, id);
+			} else {
+				// TODO: send error
+				return false;
 			}
-			// ActiveGames aktualisieren
-			newGameInfo.remove("id");
-			newGameInfo.put("id", id);
-			newGameInfo.put("activeplayers", 1);
-			newGameInfo.put("maxplayers", maxPlayers);
-			
-			this.updateActiveGames(-1, null, newGameInfo);
-			
-			// Objekte wegsortieren
-			this.mdsInterpreters.put(id, mdsSI);
-			this.waitingClients.remove(conn);
-			this.playingClients.put(conn, id);
-			
 		}
 		
 		this.notifyLobby();
@@ -345,11 +347,12 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		String message = "";
 		try {
 			message = WhiteboardHandler.toJson(keys, entry);
+			conn.send(message);
 		} catch (UnknownWhiteboardTypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		conn.send(message);
+		
 	}
 	
 	@Override
