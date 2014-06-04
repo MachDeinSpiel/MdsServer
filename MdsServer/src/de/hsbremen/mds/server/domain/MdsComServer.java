@@ -90,6 +90,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 	
+	@SuppressWarnings("unused") // Wird vermutlich spaeter noch benoetigt
 	private synchronized boolean updateGamesTemplate(int gameID, String key, Object value){
 		JSONArray gamesArray = this.gameTemplates.getJSONArray("games");
 		

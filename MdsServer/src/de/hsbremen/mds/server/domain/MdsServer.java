@@ -10,7 +10,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.java_websocket.WebSocket;
-import org.java_websocket.WebSocketImpl;
 
 /**
  * 
