@@ -1,12 +1,16 @@
 package de.hsbremen.mds.server.domain;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+
 import org.java_websocket.WebSocket;
+
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
@@ -35,19 +39,35 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * 
 	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
-		// Lokales WB aktualisieren
-		this.onWhiteboardUpdate(keys, entry);
-//		//Whiteboard loeschen
-//		if(entry.getValue().equals("delete")){
-//			this.removeWhiteboard(conn, keys);
-//		}
-//		// Allen anderen Clients das Update schicken
-		for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-		//	if (!mapEntry.getValue().equals(conn)) {
+		//Whiteboard loeschen TODO:klappt noch nicht, update wird an alle spieler verschickt.
+		//Das kommt beim client an. '{"valuetype":"java.lang.String","visibility":"none","value":"delete","path":"Players,Hans","mode":"single"}'
+		if(entry.getValue().equals("delete")){
+			this.removeWhiteboard(conn, keys);
+			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
 				this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
-		//	}
+			}			
+		}else{
+			// Lokales WB aktualisieren
+			this.onWhiteboardUpdate(keys, entry);
+			try {
+				makeWhiteboardList((Whiteboard) entry.getValue(), keys);
+			} catch (InvalidWhiteboardEntryException e) {
+				e.printStackTrace();
+			}
+			
+			// Allen anderen Clients das Update schicken
+			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
+				if (!mapEntry.getValue().equals(conn)) {
+					for(Iterator<WhiteboardUpdateObject> iter = this.whiteboardUpdateObjects.iterator(); iter.hasNext();){
+						this.comServer.sendUpdate(mapEntry.getValue(), keys, iter.next().getValue());
+					}
+				}	
+			}
+			this.whiteboardUpdateObjects.clear();
 		}
 		
+
+
 	}
 
 	
@@ -100,7 +120,6 @@ public class MdsServerInterpreter implements ComServerInterface {
 				e.printStackTrace();
 			}
 		
-			
 			this.clients.put("Players," + playerName, conn);
 			
 			List<String> keys = new Vector<String>();
@@ -121,20 +140,17 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * @param conn WebSocket
 	 */
 	public void onLostConnection(WebSocket conn) {
-		System.out.println("HALLLOOO");
 		String name         = null;
 		WhiteboardEntry wbe = null;
 		List<String> keys   = new Vector<String>();
-		keys.add("Players");
 		
 		for(Map.Entry<String, WebSocket> entry : clients.entrySet()) {
 			if(entry.getValue().equals(conn)){
 				name = entry.getKey();
 				keys.add(name);
 				clients.remove(entry.getKey());
-				
 				try {
-					wbe = new WhiteboardEntry("delete", "");
+					wbe = new WhiteboardEntry("delete", "none");
 				} catch (InvalidWhiteboardEntryException e) {
 					e.printStackTrace();
 				}
@@ -160,7 +176,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
 			}
 		}
-		System.out.println("DELEEEEETTTEEEEEEEEEEEEEEEEEEE");
+//		System.out.println("DELEEEEETTTEEEEEEEEEEEEEEEEEEE");
 		this.removeWhiteboard(clients.get("1"), a);
 		printWhiteboard(keyPath, wb);
 	}
@@ -224,22 +240,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * @param keys List<String>
 	 */
 	private void removeWhiteboard(WebSocket conn, List<String> keys){
-		String key = keys.get(keys.size() - 1);
-		keys.remove(keys.size() - 1);
-		String [] path  = this.getStringArrayPath(keys);
-		//remove whiteboard
-		WhiteboardEntry ent = whiteboard.getAttribute(path);
-		Whiteboard wb   = (Whiteboard) ent.getValue();
-		wb.remove(key);	
-//		//update 
-//		keys.add(key);
-//		WhiteboardEntry entry = null;
-//		try {
-//			entry = new WhiteboardEntry("delete", "");
-//		} catch (InvalidWhiteboardEntryException e) {
-//			e.printStackTrace();
-//		}
-//		this.onWhiteboardUpdate(conn, keys, entry);
+		String path = keys.get(0);
+		String[] segs = path.split( Pattern.quote( "," ) );
+		this.whiteboard.deleteAttribute(segs);
 	}	
 
 	/**
