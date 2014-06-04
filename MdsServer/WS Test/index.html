@@ -10,13 +10,26 @@
     <script type="text/javascript">
         document.observe("dom:loaded", function() {
         
-        	var date = new Date();
-        	var hours = date.getHours();
-        	var minutes = date.getMinutes();
-        	var seconds = date.getSeconds();
+        	
         
-            function log(text) {
-                $("log").innerHTML = hours + ":" + minutes + ":" + seconds + " : " + (!Object.isUndefined(text) && text !== null ? text.escapeHTML() : "null") + $("log").innerHTML;
+            function log(text) {     		
+                $("log").innerHTML = getTime() + " : " + (!Object.isUndefined(text) && text !== null ? text.escapeHTML() : "null") + $("log").innerHTML;
+            }
+            
+            function getTime() {
+            	var date = new Date();
+            	
+        		var hours = date.getHours();
+        		hours = hours < 10 ? "0"+hours : hours;
+        		
+        		var minutes = ""+date.getMinutes(2);
+        		minutes = minutes < 10 ? "0"+minutes : minutes;
+        		
+        		var seconds = ""+date.getSeconds(2);
+        		seconds = seconds < 10 ? "0"+seconds : seconds;
+            	
+            	return hours + ":" + minutes + ":" + seconds
+            
             }
 
             if (!window.WebSocket) {
