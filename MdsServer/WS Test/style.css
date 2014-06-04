@@ -10,6 +10,23 @@ form {
 
 }
 
+a {
+	color: #0086cc;
+	text-decoration:none;
+	padding:5px 7px;
+	font-size:12px;
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	border:1px solid #0086cc
+}
+
+a:hover {
+	background: #0086cc;
+	color: #fff;
+	text-decoration:none;
+}
+
 #sendForm input:not([type=submit]):not([type=file])  {
 	font-family:monospace;
 	font-size: 0.9em;
