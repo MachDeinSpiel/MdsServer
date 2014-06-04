@@ -1,18 +1,11 @@
 package de.hsbremen.mds.server.domain;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.java_websocket.WebSocket;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
@@ -21,20 +14,20 @@ import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServerNew;
 
-public class MdsServerInterpreter implements ComServerInterface {
-	private Whiteboard whiteboard = new Whiteboard();
-	private MdsComServer comServer;
-	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
-	//Websockets Hashmap...
-	private Map<String,WebSocket> clients = new ConcurrentHashMap<String, WebSocket>();
 
+
+public class MdsServerInterpreter implements ComServerInterface {
+	private Whiteboard whiteboard         = new Whiteboard();
+	private Whiteboard playerTemplate     = new Whiteboard();
+	private Map<String,WebSocket> clients = new ConcurrentHashMap<String, WebSocket>();	//Websockets Hashmap...
+	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
+	private MdsComServer comServer;
 	
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
 		this.comServer = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
-//		String a = null;
-//		this.printWhiteboard(a, this.whiteboard);
+		this.savePlayerTemplate();
 	}
 
 	@Override
@@ -44,15 +37,15 @@ public class MdsServerInterpreter implements ComServerInterface {
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		// Lokales WB aktualisieren
 		this.onWhiteboardUpdate(keys, entry);
-		//Whiteboard loeschen
-		if(entry.getValue().equals("delete")){
-			this.removeWhiteboard(conn, keys);
-		}
-		// Allen anderen Clients das Update schicken
+//		//Whiteboard loeschen
+//		if(entry.getValue().equals("delete")){
+//			this.removeWhiteboard(conn, keys);
+//		}
+//		// Allen anderen Clients das Update schicken
 		for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-			if (!mapEntry.getValue().equals(conn)) {
+		//	if (!mapEntry.getValue().equals(conn)) {
 				this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
-			}
+		//	}
 		}
 		
 	}
@@ -96,49 +89,16 @@ public class MdsServerInterpreter implements ComServerInterface {
 
 			try {
 				player = new WhiteboardEntry(playerName, "all");
-
-				/* ---- parsen des player templates ---- */
-				JSONParser parser = new JSONParser();
-
-				try {
-					Object obj = parser.parse(new FileReader("https://github.com/MachDeinSpiel/MdsJsons/blob/master/BombDefuser_Server.json"));
-
-					JSONObject jsonObject = (JSONObject) obj;
-					
-					/* ---- aus der JSON datei lesen ---- */
-					int health; 
-					String latitude, longitude;
-					
-					JSONArray players_array = (JSONArray) jsonObject.get("Players"); //get all Players
-					
-					// DONE: Hier mal die Struktur fest gecoded, muss noch dynamisch aus der JSON ausgelesen werden
-					for(int i = 0; i < players_array.size(); i++) {
-						JSONObject the_player = (JSONObject) players_array.get(i);
-
-						// attribute werden aus dem JSONObject gelesen
-						health = Integer.parseInt(the_player.get("health").toString());
-						latitude = (String) the_player.get("latitude");
-						longitude = (String) the_player.get("longitude");
-						
-						// das eingelesenen Attribute werden ins whiteboard gepackt
-						Whiteboard playerAtt = new Whiteboard();
-						playerAtt.put("health", new WhiteboardEntry(health, "none"));
-						playerAtt.put("latitude", new WhiteboardEntry(latitude, "none"));
-						playerAtt.put("longitude", new WhiteboardEntry(longitude, "none"));	
-						
-						// das Attribut-Whiteboard wird zum Player-Whiteboard hinzugefügt
-						player = new WhiteboardEntry(playerAtt, "all");
-					}
-				//try{} end
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (ParseException e) {
-					e.printStackTrace();
-				} catch (NullPointerException e) {
-					e.printStackTrace();
+				Whiteboard playerAtt = new Whiteboard();
+				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
+					playerAtt.put(entry.getKey(), 
+							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
 				}
+				player = new WhiteboardEntry(playerAtt, "all");
+
+			} catch (InvalidWhiteboardEntryException e) {
+				e.printStackTrace();
+			}
 		
 			
 			this.clients.put("Players," + playerName, conn);
@@ -151,14 +111,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 			this.onWhiteboardUpdate(conn, keys, player);
 			
 			return true;
-			
-		}catch(Exception e){
-			
-		}
+		}	
 		
-		}
 		return false;
-		
 	}	
 	/**
 	 * 
@@ -218,6 +173,14 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * 
 	 */
 
+	/**
+	 * Player Templat speichern und das Template aus den globalen Whiteboard loeschen.
+	 */
+	private void savePlayerTemplate(){
+		this.playerTemplate = (Whiteboard) this.whiteboard.getAttribute("Players", "0").value;
+		this.whiteboard.deleteAttribute("Players", "0");
+	}
+	
 	/**
 	 * Locales Whiteboard Update
 	 * 
