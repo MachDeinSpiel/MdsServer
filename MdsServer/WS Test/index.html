@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>WebSocket Chat Client</title>
+    <title>MDS WebSocket Testing Client</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link href="normalize.css" media="all" rel="stylesheet" type="text/css"/>
 	<link href="style.css" media="all" rel="stylesheet" type="text/css"/>
@@ -9,6 +9,31 @@
 
     <script type="text/javascript">
         document.observe("dom:loaded", function() {
+        
+        
+        var mytextbox = document.getElementById('textField');
+		var mydropdown = document.getElementById('dropdown');
+		var urlParams = getURLPapameter();
+		var server = urlParams["server"];
+		var port = urlParams["port"];
+		var serverTextField = document.getElementById('server');
+		
+		serverTextField.value = "ws://" + server + ":" + port;
+        
+        function getURLPapameter() {
+			var vars = {};
+    		var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,    
+    		function(m,key,value) {
+      			vars[key] = value;
+   			});
+    		return vars;
+		}
+  
+  		
+
+		mydropdown.onclick = function(){
+			mytextbox.value = this.value;
+		}
         
         	
         
@@ -31,6 +56,7 @@
             	return hours + ":" + minutes + ":" + seconds
             
             }
+            
 
             if (!window.WebSocket) {
                 alert("FATAL: WebSocket not natively supported. This demo will not work!");
@@ -40,7 +66,7 @@
 
             $("uriForm").observe("submit", function(e) {
                 e.stop();
-                ws = new WebSocket($F("uri"));
+                ws = new WebSocket($F("server"));
                 ws.onopen = function() {
                     log("Connected\n");
                 }
@@ -49,11 +75,11 @@
                 }
                 ws.onclose = function() {
                     log("[WebSocket#onclose]\n");
-                    $("uri", "connect").invoke("enable");
+                    $("server", "connect").invoke("enable");
                     $("disconnect").disable();
                     ws = null;
                 }
-                $("uri", "connect").invoke("disable");
+                $("server", "connect").invoke("disable");
                 $("disconnect").enable();
             });
 
@@ -81,11 +107,13 @@
     </script>
   </head>
   <body>
-    <form id="uriForm"><input type="text" id="uri" value="ws://localhost:8887" style="width:200px;" class="styled-button"> 
-    <input type="submit" id="connect" value="Connect" class="styled-button"> <input type="button" id="disconnect" value="Disconnect" disabled="disabled" class="styled-button"></form>
+    <form id="uriForm">
+    <a href="index.html?server=localhost&port=8887">localhost</a> <a href="index.html?server=195.37.176.178&port=1387">mds-server</a>
+    <input type="text" id="server" value="ws://localhost:8887" style="width:252px;" class="styled-button"> 
+    <input type="submit" id="connect" value="Connect" class="styled-button" style="width:80px"> <input type="button" id="disconnect" value="Disconnect" disabled="disabled" class="styled-button" style="width:80px"></form>
     
     <form id="sendForm"><input type="text" id="textField" value="" class="styled-button">
-    <input type="submit" value="Send" class="styled-button">
+    <input type="submit" value="Send" class="styled-button" style="width:80px">
     <select id="dropdown" class="styled-button">
     <option value=''>---- Globale Lobby ----</option>
     <option value='{"mode":"gametemplates"}'>1. Verfügbare Spiele anfordern</option>
@@ -99,14 +127,11 @@
 	</select>
     </form>     
     <form><textarea readonly id="log" rows="30" cols="100"></textarea></form><br>
+    
   </body>
   <script type="text/javascript">
-  		var mytextbox = document.getElementById('textField');
-		var mydropdown = document.getElementById('dropdown');
-
-		mydropdown.onclick = function(){
-			mytextbox.value = this.value;
-		}
+  
+  		
         
     </script>
 </html>
