@@ -126,8 +126,8 @@ public class MdsServerInterpreter implements ComServerInterface {
 			keys.add("Players");
 			keys.add(playerName);
 
-			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
 			this.onWhiteboardUpdate(conn, keys, player);
+			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
 			
 			return true;
 		}	
