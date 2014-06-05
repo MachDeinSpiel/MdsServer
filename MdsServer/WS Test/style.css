@@ -31,7 +31,7 @@ a:hover {
 	font-family:monospace;
 	font-size: 0.9em;
 
-}    
+}
 
 
 
@@ -46,7 +46,7 @@ a:hover {
 
 #log {
 
-	font-family:monospace; 
+	font-family:monospace;
 	font-size: 0.9em;
 	padding:5px 7px;
 	color:#333;
@@ -54,7 +54,7 @@ a:hover {
 	-moz-border-radius:4px;
 	-webkit-border-radius:4px;
 	border:1px solid #0086cc
-	
+
 }
 
 
@@ -95,8 +95,8 @@ a:hover {
 	-webkit-border-radius:4px;
 	border:1px solid #0086cc
 }
-    
-        
 
+option {
+	color:black;
 
-
+}
