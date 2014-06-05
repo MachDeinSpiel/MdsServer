@@ -58,7 +58,7 @@
       	container.id = options.id;
       	
       	
-      	for(i=0; i<options.items.length; i++){
+      	for(var i=0; i<options.items.length; i++){
       		//alert(options.items[i]);
       		container.appendChild(options.items[i]);
       	}
@@ -87,10 +87,10 @@
     	  
     	  options.gmap.controls[options.position].push(container);
     	  google.maps.event.addDomListener(container,'click',function(){
-    		(document.getElementById('myddOptsDiv').style.display == 'block') ? document.getElementById('myddOptsDiv').style.display = 'none' : document.getElementById('myddOptsDiv').style.display = 'block';
+    		(document.getElementById(options.dropDown.id).style.display == 'block') ? document.getElementById(options.dropDown.id).style.display = 'none' : document.getElementById(options.dropDown.id).style.display = 'block';
     		setTimeout( function(){
-    			document.getElementById('myddOptsDiv').style.display = 'none';
-    		}, 1500);
+    			document.getElementById(options.dropDown.id).style.display = 'none';
+    		}, 3000);
     	  })      	  
       }
      

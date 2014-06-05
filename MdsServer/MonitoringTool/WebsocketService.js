@@ -3,13 +3,17 @@ function WebsocketService(){
 
             var ws;
         	var whiteboard = new Whiteboard();
+        	var open = false;
 
 
             //Aufbau der Websocketverbindung
-                ws = new WebSocket("ws://195.37.176.178:1387"); //feijnox.no-ip.org:8000
+                ws = new WebSocket("ws://195.37.176.178:1387"); // ws://195.37.176.178:1387 ws://feijnox.no-ip.org:8000
                 ws.onopen = function() {
                 	document.getElementById('log').value = "[WebSocket#onopen]\n";
-                	ws.send('{"mode":"activegames"}');
+                	if(open == false){
+                		ws.send('{"mode":"activegames"}');
+                		open = !open;
+                	}
 
                 }
                 
@@ -46,6 +50,7 @@ function WebsocketService(){
                 ws.onclose = function() {
                 	document.getElementById('log').value = "[WebSocket#onclose]\n";
                 }
+
             
 
         
