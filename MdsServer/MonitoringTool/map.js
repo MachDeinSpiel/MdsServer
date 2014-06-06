@@ -241,7 +241,7 @@
 	// initializing the actual map
 	function initialize() {
 		var mapOptions = {
-			zoom: 12,
+			zoom: 14,
 			center: bremen
 		};
 	
