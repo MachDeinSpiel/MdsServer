@@ -21,7 +21,7 @@ public class MdsServer {
 		InputStream is = null;
 		
 		try {
-			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/devMultigame/config.json").openStream();
+			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/config.json").openStream();
 		} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
