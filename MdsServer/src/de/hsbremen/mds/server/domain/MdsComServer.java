@@ -43,6 +43,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private JSONObject activeGames;
 	private Map<Integer, MdsServerInterpreter> mdsInterpreters;
 	private List<WebSocket> waitingClients;
+	private Map<WebSocket, Integer> monitors;
 	private Map<WebSocket, Integer> playingClients;
 		
 	
@@ -52,6 +53,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.waitingClients = new Vector<WebSocket>();
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.mdsInterpreters = new ConcurrentHashMap<Integer, MdsServerInterpreter>();
+		this.monitors = new HashMap<WebSocket, Integer>();
 	}
 
 	public MdsComServer(InetSocketAddress address) {
@@ -203,6 +205,13 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			
 		}
 		
+		if (this.monitors.containsKey(conn)) {
+			int gameID = this.monitors.get(conn);
+			this.mdsInterpreters.get(gameID).detachMonitor(conn);
+			this.monitors.remove(conn);
+			
+		}
+		
 		this.printState();
 		
 	}
@@ -211,6 +220,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	public void onMessage(WebSocket conn, String message) {
 		try {
 			JSONObject mes = new JSONObject(message);
+			String mode = (String) mes.get("mode");
 			if(this.playingClients.containsKey(conn)) {
 				int gameID = this.playingClients.get(conn);
 				List<WhiteboardUpdateObject> wObj = WhiteboardHandler.toObject(message);
@@ -222,19 +232,27 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					this.mdsInterpreters.get(gameID).onFullWhiteboardUpdate(conn, wObj);
 					//mdsServerInterpreter.onFullWhiteboardUpdate(conn, wObj);
 				}
-			} else if (this.waitingClients.contains(conn) && (mes.get("mode").equals("join") || mes.get("mode").equals("create") )) {
+			} else if (this.waitingClients.contains(conn) && (mode.equals("join") || mode.equals("create") )) {
 				// Mode join oder create
 				assignInterpreter(conn, mes);
 			}
 			//System.out.println(conn + ": " + message);
 			
 			
-			if (mes.get("mode").equals("gametemplates")) {
+			if (mode.equals("gametemplates")) {
 				conn.send(this.gameTemplates.toString());
 			}
 			
-			if (mes.get("mode").equals("activegames")) {
+			if (mode.equals("activegames")) {
 				conn.send(this.activeGames.toString());
+			}
+			
+			if (mode.equals("monitor")) {
+				int gameID = (Integer) mes.get("id");
+				String name = (String) mes.get("name");
+				this.monitors.put(conn, gameID);
+				this.mdsInterpreters.get(gameID).attachMonitor(name, conn);
+				
 			}
 			
 		} catch (JSONException e) {
@@ -426,6 +444,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 	private void printState() {
 		System.out.println("\n---------------- STATS ----------------");
+		System.out.println(this.monitors.size() + " Monitors(s) watching");
 		System.out.println(this.playingClients.size() + " Player(s) playing");
 		System.out.println(this.waitingClients.size() + " Player(s) in the Lobby");
 		System.out.println(this.mdsInterpreters.size() + " Interpreter(s) currently running\n");

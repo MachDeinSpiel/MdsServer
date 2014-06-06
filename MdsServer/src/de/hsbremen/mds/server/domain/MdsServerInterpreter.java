@@ -269,5 +269,16 @@ public class MdsServerInterpreter implements ComServerInterface {
 	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public void attachMonitor(String name, WebSocket conn) {
+		this.clients.put(name, conn);
+		this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+		
+	}
+
+	public void detachMonitor(WebSocket conn) {
+		this.clients.remove(conn);
+		
 	}	
 }
