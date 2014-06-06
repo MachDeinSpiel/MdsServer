@@ -7,10 +7,12 @@
 	// array for item marker
 	var items = [];
 
-	
+	var whiteboard;
 	var totalPlayerMarker;
 	var totalItemMarker;
 	
+	
+	var itemDiv = [];
 	var totalPLayer;
 	var totalItem;
 	
@@ -21,11 +23,11 @@
     var dropDown1;
 
 	// initializing player information window
-	function createInfoWindowContent(marker) {	
+	function createInfoWindowContent(player) {	
 	  return [
 	     marker.title,
-	    'Position: ' + marker.position,
-	    'Backpack: ' + ' ',
+	    'Position: ' + player.marker.position,
+	    'Health: ' + player.health,
 		'Team: ' + '  '
 		
 	  ].join('<br>');
@@ -33,13 +35,14 @@
 	
 	// major update function
 	function update(changings, qwhiteboard, values){
-		var whiteboard = qwhiteboard;
+		whiteboard = qwhiteboard;
 		whiteboard.updateWhiteboard(changings, whiteboard, values);
 		updatePlayers(whiteboard);
 		updateItems(whiteboard.Bombs, 'bomb', 0);
 		updateItems(whiteboard.Medipacks, 'medi', 1);
-		console.log(items);
-		createItemDropDown();
+		for(var i = 1;  i < whiteboard; i++){
+			createItemDropDown(whiteboard[i]);
+		}
 		
 		return whiteboard;
 	
@@ -50,30 +53,29 @@
 		totalPlayer  = whiteboard.Players;
 		totalPlayerMarker = 0;
 		for (var i in totalPlayer) {
-			//console.log(i);
 			var myLatlng = null;
 			if((typeof totalPlayer[i].latitude !='undefined') &&  (typeof totalPlayer[i].latitude !='undefined')){
 				myLatlng = new google.maps.LatLng(totalPlayer[i].latitude, totalPlayer[i].longitude);
 			}
-		    if (players[totalPlayerMarker] == null) { // Create new marker if player does not already exists
-		        players[totalPlayerMarker] = new google.maps.Marker({
+		    if (totalPlayer[i].marker == null) { // Create new marker if player does not already exists
+		    	totalPlayer[i].marker = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
 		        	title: 'Player ' + totalPlayer[i].health.toString()
 		        });
-			    alert('Neuer Spieler: ' + players[totalPlayerMarker].title);
+			    alert('Neuer Spieler: ' + totalPlayer[i].marker.title);
 		        
 		    } else { // Update the player marker if already exists
-				players[totalPlayerMarker].setPosition(myLatlng);
+		    	totalPlayer[i].marker.setPosition(myLatlng);
 		    }
 		
 
-	    google.maps.event.addListener(players[totalPlayerMarker], 'click', function() { 
-			console.log(players[totalPlayerMarker]);
-	        if (!this.infowindow) { // um bestehende infowindows wiederzuverwenden 
+	    google.maps.event.addListener(totalPlayer[i].marker, 'click', function() { 
+			console.log(totalPlayer[i].marker);
+	        if (!totalPlayer[i].marker.infowindow) { // um bestehende infowindows wiederzuverwenden 
 	            this.infowindow = new google.maps.InfoWindow({ 
-	                content: createInfoWindowContent(players[totalPlayerMarker])
+	                content: createInfoWindowContent(totalPlayer[i])
 	            }); 
 	        }; 
 	        this.infowindow.open(map, this); 
@@ -87,14 +89,12 @@
 
 		totalItem = item;
 		totalItemMarker = 0;
-		current = [];
-		items.push(current);
 		for (var i in totalItem) {
 			if((typeof totalItem[i].latitude !='undefined') &&  (typeof totalItem[i].latitude !='undefined')){
 				var myLatlng = new google.maps.LatLng(totalItem[i].latitude, totalItem[i].longitude);
 			}
-		    if (items[count][totalItemMarker] == null) { // Create new marker if not already exist
-		        items[count][totalItemMarker] = new google.maps.Marker({
+		    if (totalItem[i].marker == null) { // Create new marker if not already exist
+		    	totalItem[i].marker = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
@@ -102,18 +102,19 @@
 		        	icon: 'images/'+ icon + '.png'
 		        });
 		    } else { // update the marker
-				items[count][totalItemMarker].setPosition(myLatlng);
+		    	totalItem[i].marker.setPosition(myLatlng);
 		    }
+	    	console.log("Marker: " + totalItem[i].marker);
 
-		    google.maps.event.addListener(items[count][totalItemMarker], 'click', function() { 
-		    	console.log(items[count][totalItemMarker]);
-		        if (!this.infowindow) { // um bestehende infowindows wiederzuverwenden 
+		    google.maps.event.addListener(totalItem[i].marker, 'click', function() { 
+				console.log(totalItem[i].marker);
+		        if (!totalItem[i].marker.infowindow) { // um bestehende infowindows wiederzuverwenden 
 		            this.infowindow = new google.maps.InfoWindow({ 
-		                content: createInfoWindowContent(items[count][totalItemMarker])
+		                content: createInfoWindowContent(totalItem[i])
 		            }); 
 		        }; 
 		        this.infowindow.open(map, this); 
-		    });
+		    });	
 		    totalItemMarker = totalItemMarker + 1;
 		}
 
@@ -122,25 +123,25 @@
 	
 	// Shows any markers currently in the array.
 	function showPlayers(id) {
-		if((typeof players !='undefined')){
+		//if((typeof players !='undefined')){
 			if(document.getElementById(id).style.display == 'block'){
 				clearPlayers();
 				console.log("block");
 			} else {
-				setAllPlayersMap(map, players);
+				setAllPlayersMap(map, whiteboard.Players);
 				console.log("none");
 			}
-		}
+		//}
 	}
 	
 	//Shows all Players with Health lower than 20
 	function showLowHealthPlayers(id){
-		if((typeof players !='undefined')){
+		//if((typeof players !='undefined')){
 			if(document.getElementById(id).style.display == 'block'){
-				playersLow = [];
-				for(var i = 0; i < totalPlayer; i ++){
-					if(players[i].health <= 20){
-						playersLow.push(players[i]);
+				playersLow = {};
+				for(var i in whiteboard.Players){
+					if(whiteboard.Players[i].health <= 20){
+						playersLow.push(whiteboard.Players[i]);
 					}
 				}
 				if(playersLow[0] != null){
@@ -148,44 +149,41 @@
 					clearPlayers();
 				}
 			} else {
-				setAllPlayersMap(map, players);
+				setAllPlayersMap(map, whiteboard.Players);
 			}
-		}
+		//}
 	}
 	
 	//Sets the map on all markers in the array.
-	function setAllPlayersMap(map, playerArray) {
-		console.log("players:" +playerArray);
-	  for (var i = 0; i < totalPlayerMarker; i++) {
-	    playerArray[i].setMap(map);
+	function setAllPlayersMap(map, playersTotal) {
+	  for (var i in playersTotal) {
+	    playersTotal[i].marker.setMap(map);
 	  }
 	}
 
 	//Removes the markers from the map, but keeps them in the array.
 	function clearPlayers() {
-	  setAllPlayersMap(null, players);
+	  setAllPlayersMap(null, whiteboard.Players);
 	}
 	
 	
 	//Sets the map on all markers in the array.
-	function setAllItemsMap(map, arrayCount) {
-	  for (var i = 0; i < items.length; i++) {
-		  console.log(i);
-		  console.log(arrayCount);
-	    items[arrayCount][i].setMap(map);
+	function setAllItemsMap(map, whichItem) {
+	  for (var i in whichItem) {
+	    whichItem[i].marker.setMap(map);
 	  }
 	}
 	
-	function clearItems(itemsArray) {
-		  setAllItemsMap(null, itemsArray);
+	function clearItems(which) {
+		  setAllItemsMap(null, which);
 		}
 	
-	function showItems(id, wichItemsArray) {
+	function showItems(id, which) {
 		if(document.getElementById(id).style.display == 'block'){
-			clearItems(wichItemsArray);
+			clearItems(which);
 			console.log("block");
 		} else {
-			setAllItemsMap(map, wichItemsArray);
+			setAllItemsMap(map, which);
 			console.log("none");
 		}
 
@@ -202,52 +200,40 @@
 		map.panTo(player.position);
 	}
 	
-	function createItemDropDown(){
-        // Item DropDown
-        var itemsDivs = [];
-       /* var checkOptions3 = {
+	function createItemDropDown(whichItem){
+        var hideItemOptions = {
         		gmap: map,
-        		title: "Click to hide all Items",
-        		id: "terrainCheck2",
-        		label: "Hide Items",				
+        		title: "Click to hide Item",
+        		id: "Item" + whichItem[0].health,
+        		label: "Hide Item",				
         		action: function(){
-        			//showItems(checkOptions3.id, items);
+        			showItems(hidePlayersOptions.id, whichItem);
         		}        		        		
-        }*/
-        for(var i = 0; i < items.length; i++){
-	        var checkOptions4 = {
-	            gmap: map,
-	            title: "Click to show Players with low Health",
-	            id: "id" + items[i].toString(),
-	            label: "Hide " + items[i][0].title,
-	            action: function(){
-	            	showItems(checkOptions4.id, i);
-	            	}        		        		
-	            }
-	            var check4 = new checkBox(checkOptions4);
-	            itemsDivs.push(check4);
-	        	console.log("Current " + current);
-        	}      
+        }
+        var check1 = new checkBox(hidePlayersOptions);
+
+        itemDiv.push(check1);
         //create the input box items
         
         //put them all together to create the drop down       
-        var ddDivOptions2 = {
-        	items: itemsDivs,
-        	id: "myddOptsDiv2"        		
+        var ddDivOptions = {
+        	items: itemDiv,
+        	id: "myddOptsDiv"        		
         }
         //alert(ddDivOptions.items[1]);
-        var dropDownDiv2 = new dropDownOptionsDiv(ddDivOptions2);               
+        var itemdropDownDiv = new dropDownOptionsDiv(ddDivOptions);               
                 
-        var dropDownOptions2 = {
+        var dropDownOptions = {
         		gmap: map,
         		name: 'Item Filter',
-        		id: 'ddControl2',
+        		id: 'ddControl',
         		title: 'Click to use several Filters',
         		position: google.maps.ControlPosition.TOP_RIGHT,
-        		dropDown: dropDownDiv2 
-        }
-        
-        var dropDown2 = new dropDownControl(dropDownOptions2);             
+        		dropDown: itemdropDownDiv 
+        }   
+        //Item DropDown
+        var dropDown1 = null;
+        dropDown1 = new dropDownControl(dropDownOptions);               
 
 	}
 	
@@ -302,12 +288,7 @@
         		dropDown: dropDownDiv 
         }   
         //Player DropDown
-        var dropDown1 = new dropDownControl(dropDownOptions);     
-        
-        
-        
-        
-
+        var dropDown1 = new dropDownControl(dropDownOptions);
  
 	}
 

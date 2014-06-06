@@ -10,7 +10,7 @@ function WebsocketService(){
                 ws = new WebSocket("ws://195.37.176.178:1387"); // ws://195.37.176.178:1387 ws://feijnox.no-ip.org:8000
                 ws.onopen = function() {
                 	document.getElementById('log').value = "[WebSocket#onopen]\n";
-                	if(open == false){
+                	if(open === false){
                 		ws.send('{"mode":"activegames"}');
                 		open = !open;
                 	}
@@ -41,7 +41,7 @@ function WebsocketService(){
                 }
                 
                 onSendMessage = function(){
-                	var message = '{"mode":"join","id":0,"name":"Monitoring"}'
+                	var message = '{"mode":"monitor", "id":0, "name":"Monitor1"}'
                 	document.getElementById('log').value = "[WebSocket#onmessage] Message: '" + message + "'\n";
                 	ws.send(message);   
                 }
