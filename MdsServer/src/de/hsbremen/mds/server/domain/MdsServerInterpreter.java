@@ -194,7 +194,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 */
 	private void savePlayerTemplate(){
 		this.playerTemplate = (Whiteboard) this.whiteboard.getAttribute("Players", "0").value;
-		this.whiteboard.deleteAttribute("Players", "0");
+		this.whiteboard.deleteAttribute("Players", "template");
 	}
 	
 	/**
