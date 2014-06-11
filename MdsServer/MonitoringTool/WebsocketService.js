@@ -7,7 +7,7 @@ function WebsocketService(){
 
 
             //Aufbau der Websocketverbindung
-                ws = new WebSocket("ws://195.37.176.178:1387"); // ws://195.37.176.178:1387 ws://feijnox.no-ip.org:8000
+                ws = new WebSocket("ws://feijnox.no-ip.org:8000"); // ws://195.37.176.178:1387 ws://feijnox.no-ip.org:8000
                 ws.onopen = function() {
                 	document.getElementById('log').value = "[WebSocket#onopen]\n";
                 	if(open === false){

@@ -11,6 +11,7 @@
 	var totalPlayerMarker;
 	var totalItemMarker;
 	
+    var dropDown1;
 	
 	var itemDiv = [];
 	var totalPLayer;
@@ -25,7 +26,7 @@
 	// initializing player information window
 	function createInfoWindowContent(player) {	
 	  return [
-	     marker.title,
+	     player.marker.title,
 	    'Position: ' + player.marker.position,
 	    'Health: ' + player.health,
 		'Team: ' + '  '
@@ -40,9 +41,11 @@
 		updatePlayers(whiteboard);
 		updateItems(whiteboard.Bombs, 'bomb', 0);
 		updateItems(whiteboard.Medipacks, 'medi', 1);
-		for(var i = 1;  i < whiteboard; i++){
-			createItemDropDown(whiteboard[i]);
-		}
+		//for(var i = 1;  i < whiteboard.length; i++){
+			console.log("Ich werde ausgeführt");
+			createItemDropDown(whiteboard.Bombs);
+			createItemDropDown(whiteboard.Medipacks);
+		//}
 		
 		return whiteboard;
 	
@@ -204,13 +207,13 @@
         var hideItemOptions = {
         		gmap: map,
         		title: "Click to hide Item",
-        		id: "Item" + whichItem[0].health,
+        		id: "Item" + whichItem.health,
         		label: "Hide Item",				
         		action: function(){
-        			showItems(hidePlayersOptions.id, whichItem);
+        			showItems(hideItemOptions.id, whichItem);
         		}        		        		
         }
-        var check1 = new checkBox(hidePlayersOptions);
+        var check1 = new checkBox(hideItemOptions);
 
         itemDiv.push(check1);
         //create the input box items
@@ -218,10 +221,11 @@
         //put them all together to create the drop down       
         var ddDivOptions = {
         	items: itemDiv,
-        	id: "myddOptsDiv"        		
+        	id: "myddDiv"        		
         }
         //alert(ddDivOptions.items[1]);
-        var itemdropDownDiv = new dropDownOptionsDiv(ddDivOptions);               
+        var itemdropDownDiv = null;
+        itemdropDownDiv = new dropDownOptionsDiv(ddDivOptions);               
                 
         var dropDownOptions = {
         		gmap: map,
@@ -232,7 +236,7 @@
         		dropDown: itemdropDownDiv 
         }   
         //Item DropDown
-        var dropDown1 = null;
+        dropDown1 = null;
         dropDown1 = new dropDownControl(dropDownOptions);               
 
 	}
