@@ -194,8 +194,8 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * Player Templat speichern und das Template aus den globalen Whiteboard loeschen.
 	 */
 	private void savePlayerTemplate(){
-		this.playerTemplate = (Whiteboard) this.whiteboard.getAttribute("Players", "0").value;
-		this.whiteboard.deleteAttribute("Players", "0");
+		this.playerTemplate = (Whiteboard) this.whiteboard.getAttribute("Players", "template").value;
+		this.whiteboard.deleteAttribute("Players", "template");
 	}
 	
 	/**

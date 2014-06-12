@@ -40,7 +40,7 @@ import de.hsbremen.mds.server.valueobjects.MdsPlayer;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "06.12 devMonitor Branch";
+	private static final String version = "06.12 (devMonitor Branch)";
 	private JSONObject gameTemplates;
 	//private JSONObject activeGames;
 	//private Map<Integer, MdsServerInterpreter> mdsInterpreters;
