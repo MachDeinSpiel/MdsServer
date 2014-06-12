@@ -39,11 +39,16 @@ public class MdsGame {
 	public boolean startGame(WebSocket conn, MdsComServer mdsComServer, File file) {
 		MdsPlayer p = this.getPlayer(conn);
 		if (p.isInitinal()) {
-			this.interpreter = new MdsServerInterpreter(mdsComServer, file);
-			for (MdsPlayer pl : this.players) {
-				this.interpreter.onNewConnection(pl.getWS(), pl.getName());
+			try {
+				this.interpreter = new MdsServerInterpreter(mdsComServer, file);
+				for (MdsPlayer pl : this.players) {
+					this.interpreter.onNewConnection(pl.getWS(), pl.getName());
+				}
+				this.isRunning = true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
 			}
-			this.isRunning = true;
 			return true;
 		} else {
 			return false;
@@ -177,7 +182,7 @@ public class MdsGame {
 		return this.isRunning ;
 	}
 
-	private void exitPlayer(WebSocket conn, JSONObject mes) {
+	public void exitPlayer(WebSocket conn) {
 		MdsPlayer p = null;
 		for(MdsPlayer pl : this.players) {
 			if (pl.getWS() == conn) {
@@ -187,7 +192,7 @@ public class MdsGame {
 		
 		if (p != null) {
 			if (p.isInitinal()) {
-				this.players.remove(conn);
+				this.players.remove(p);
 				for (MdsPlayer pl : this.players) {
 					if (!pl.isInitinal()) {
 						pl.setInitinal(true);
@@ -195,7 +200,7 @@ public class MdsGame {
 					}
 				}
 			} else {
-				this.players.remove(conn);
+				this.players.remove(p);
 			}
 		}
 		
