@@ -35,8 +35,9 @@ public class ParserServerNew {
 		
 			WB = parse((JSONObject) obj);
 			
-			System.out.println("____________");
+			
 			printWhiteboard("", WB);
+			System.out.println("------------");
 			
 					
 		} catch (FileNotFoundException e) {

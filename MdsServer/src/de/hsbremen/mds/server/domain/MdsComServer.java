@@ -153,7 +153,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		int gameId = this.playingClients.get(conn);
 		MdsGame g = this.games.get(gameId);
 		String url = g.getServerURL();
-		File file = this.jsonEinlesen(url); 
+		System.out.println("\nStarting new game with " + url);
+		File file = this.readJSON(url); 
 		this.notifyLobby();
 		return g.startGame(conn, this, file);
 		
@@ -503,7 +504,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	@Override
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry value) {
-		System.err.println("onWhitboardUpdate auf ComServer");
+		System.err.println("onWhitboardUpdate on ComServer");
 		
 	}
 	
@@ -531,7 +532,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		conn.send(message);
 	}
 	
-	private File jsonEinlesen(String url) {
+	private File readJSON(String url) {
 
 		InputStream is = null;
 		
@@ -577,10 +578,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 		// Ueberprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("JSON Einlesen erfolgreich.");
+			System.out.println("Reading JSON successful.");
 			System.out.println(json.length());
 		} else {
-			System.out.println("JSON Einlesen fehlgeschlagen");
+			System.out.println("Reading JSON failed.");
 		}
 
 		return json;
