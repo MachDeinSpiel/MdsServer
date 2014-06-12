@@ -7,21 +7,13 @@
 	// array for item marker
 	var items = [];
 
-	var whiteboard;
-	var totalPlayerMarker;
-	var totalItemMarker;
-	
-    var dropDown1;
+	var whiteboard;	
 	
 	var itemDiv = [];
-	var totalPLayer;
-	var totalItem;
 	
-	var message = null;
 
 	// array for DropDown information
 	var playersDiv = [];
-    var dropDown1;
 
 	// initializing player information window
 	function createInfoWindowContent(player) {	
@@ -43,9 +35,12 @@
 		updateItems(whiteboard.Medipacks, 'medi', 1);
 		//for(var i = 1;  i < whiteboard.length; i++){
 			console.log("Ich werde ausgeführt");
-			createItemDropDown(whiteboard.Bombs);
-			createItemDropDown(whiteboard.Medipacks);
+			createItemDiv(whiteboard.Bombs);
+			addInfoWindowListener(whiteboard.Bombs);
+			createItemDiv(whiteboard.Medipacks);
+			addInfoWindowListener(whiteboard.Medipacks);
 		//}
+			createItemDropDown();
 		
 		return whiteboard;
 	
@@ -88,10 +83,9 @@
 	}
 	
 	// Updating the itemmarkers
-	function updateItems(item, icon, count) {
-
+	function updateItems(item, icon) {
+		
 		totalItem = item;
-		totalItemMarker = 0;
 		for (var i in totalItem) {
 			if((typeof totalItem[i].latitude !='undefined') &&  (typeof totalItem[i].latitude !='undefined')){
 				var myLatlng = new google.maps.LatLng(totalItem[i].latitude, totalItem[i].longitude);
@@ -107,22 +101,23 @@
 		    } else { // update the marker
 		    	totalItem[i].marker.setPosition(myLatlng);
 		    }
-	    	console.log("Marker: " + totalItem[i].marker);
-
-		    google.maps.event.addListener(totalItem[i].marker, 'click', function() { 
-				console.log(totalItem[i].marker);
-		        if (!totalItem[i].marker.infowindow) { // um bestehende infowindows wiederzuverwenden 
-		            this.infowindow = new google.maps.InfoWindow({ 
-		                content: createInfoWindowContent(totalItem[i])
-		            }); 
-		        }; 
-		        this.infowindow.open(map, this); 
-		    });	
-		    totalItemMarker = totalItemMarker + 1;
 		}
 
 	}
 	
+	
+	function addInfoWindowListener(item){
+		for(var i in item){
+		    google.maps.event.addListener(item[i].marker, 'click', function() { 
+		        if (!item[i].marker.infowindow) { // um bestehende infowindows wiederzuverwenden 
+		            this.infowindow = new google.maps.InfoWindow({ 
+		                content: createInfoWindowContent(item[i])
+		            }); 
+		        }; 
+		        this.infowindow.open(map, this); 
+		    });	
+		}
+	}
 	
 	// Shows any markers currently in the array.
 	function showPlayers(id) {
@@ -203,12 +198,12 @@
 		map.panTo(player.position);
 	}
 	
-	function createItemDropDown(whichItem){
+	function createItemDiv(whichItem){
         var hideItemOptions = {
         		gmap: map,
         		title: "Click to hide Item",
-        		id: "Item" + whichItem.health,
-        		label: "Hide Item",				
+        		id: "Item" + whichItem[0],
+        		label: "Hide " + whichItem[0],				
         		action: function(){
         			showItems(hideItemOptions.id, whichItem);
         		}        		        		
@@ -216,15 +211,15 @@
         var check1 = new checkBox(hideItemOptions);
 
         itemDiv.push(check1);
-        //create the input box items
-        
+	}  
+	
+    function createItemDropDown(){
+    	
         //put them all together to create the drop down       
         var ddDivOptions = {
         	items: itemDiv,
         	id: "myddDiv"        		
         }
-        //alert(ddDivOptions.items[1]);
-        var itemdropDownDiv = null;
         itemdropDownDiv = new dropDownOptionsDiv(ddDivOptions);               
                 
         var dropDownOptions = {
@@ -236,8 +231,7 @@
         		dropDown: itemdropDownDiv 
         }   
         //Item DropDown
-        dropDown1 = null;
-        dropDown1 = new dropDownControl(dropDownOptions);               
+        var dropDown1 = new dropDownControl(dropDownOptions);               
 
 	}
 	
