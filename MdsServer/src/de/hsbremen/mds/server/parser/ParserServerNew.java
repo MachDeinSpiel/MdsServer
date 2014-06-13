@@ -35,8 +35,9 @@ public class ParserServerNew {
 		
 			WB = parse((JSONObject) obj);
 			
-			System.out.println("____________");
+			
 			printWhiteboard("", WB);
+			System.out.println("------------");
 			
 					
 		} catch (FileNotFoundException e) {
@@ -85,7 +86,10 @@ public class ParserServerNew {
 	public void printWhiteboard(String keyPath, Whiteboard wb){
 		for(String key : wb.keySet()){
 			if(!(wb.getAttribute(key).value instanceof String)){
-				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
+				if (key.equals("inventory")) 
+					System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
+				else 
+					printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
 			}else{
 				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
 			}

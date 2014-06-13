@@ -39,8 +39,6 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * 
 	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
-		//Whiteboard loeschen TODO:klappt noch nicht, update wird an alle spieler verschickt.
-		//Das kommt beim client an. '{"valuetype":"java.lang.String","visibility":"none","value":"delete","path":"Players,Hans","mode":"single"}'
 		if(entry.getValue().equals("delete")){
 			this.removeWhiteboard(conn, keys);
 			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
@@ -54,12 +52,15 @@ public class MdsServerInterpreter implements ComServerInterface {
 			} catch (InvalidWhiteboardEntryException e) {
 				e.printStackTrace();
 			}
-			
+			//TODO: der path ist falsch... 
 			// Allen anderen Clients das Update schicken
 			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
 				if (!mapEntry.getValue().equals(conn)) {
 					for(Iterator<WhiteboardUpdateObject> iter = this.whiteboardUpdateObjects.iterator(); iter.hasNext();){
-						this.comServer.sendUpdate(mapEntry.getValue(), keys, iter.next().getValue());
+						WhiteboardUpdateObject a = iter.next();
+						WhiteboardEntry b = a.getValue();
+						List<String> k = a.getKeys();
+						this.comServer.sendUpdate(mapEntry.getValue(), k, b);
 					}
 				}	
 			}
@@ -193,7 +194,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * Player Templat speichern und das Template aus den globalen Whiteboard loeschen.
 	 */
 	private void savePlayerTemplate(){
-		this.playerTemplate = (Whiteboard) this.whiteboard.getAttribute("Players", "0").value;
+		this.playerTemplate = (Whiteboard) this.whiteboard.getAttribute("Players", "template").value;
 		this.whiteboard.deleteAttribute("Players", "template");
 	}
 	
@@ -268,6 +269,17 @@ public class MdsServerInterpreter implements ComServerInterface {
 	@Override
 	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	public void attachMonitor(String name, WebSocket conn) {
+		this.clients.put(name, conn);
+		this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+		
+	}
+
+	public void detachMonitor(WebSocket conn) {
+		this.clients.remove(conn);
 		
 	}	
 }
