@@ -15,6 +15,7 @@
     var dropDown1;
     var dropDown2;
     var first = true;
+    var zahl = 0;
 
 	// array for DropDown information
 	var playersDiv = [];
@@ -36,10 +37,11 @@
 		whiteboard.updateWhiteboard(changings, whiteboard, values);
 		updatePlayers(whiteboard);
 		for (var i in whiteboard){
-			console.log(whiteboard[i]);
-			updateItems(whiteboard[i], whiteboard[i].imagePath);
-			createItemDiv(whiteboard[i]);
-			addInfoWindowListener(whiteboard[i]);
+			if(typeof whiteboard[i] === 'object'){				
+				updateItems(whiteboard[i]);
+				createItemDiv(whiteboard[i]);
+				addInfoWindowListener(whiteboard[i]);
+			}
 
 		}
 
@@ -77,7 +79,6 @@
 		
 
 	    google.maps.event.addListener(totalPlayer[i].marker, 'click', function() { 
-			console.log(totalPlayer[i].marker);
 	        if (!totalPlayer[i].marker.infowindow) { // um bestehende infowindows wiederzuverwenden 
 	            this.infowindow = new google.maps.InfoWindow({ 
 	                content: createInfoWindowContent(totalPlayer[i])
@@ -90,7 +91,7 @@
 	}
 	
 	// Updating the itemmarkers
-	function updateItems(item, icon) {
+	function updateItems(item) {
 		
 		totalItem = item;
 		for (var i in totalItem) {
@@ -103,7 +104,7 @@
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
 		        	title: item[i].iconName,
-		        	icon: icon
+		        	//icon: item[i].imagePath
 		        });
 		    } else { // update the marker
 		    	totalItem[i].marker.setPosition(myLatlng);
@@ -131,10 +132,8 @@
 		//if((typeof players !='undefined')){
 			if(document.getElementById(id).style.display == 'block'){
 				clearPlayers();
-				console.log("block");
 			} else {
 				setAllPlayersMap(map, whiteboard.Players);
-				console.log("none");
 			}
 		//}
 	}
@@ -186,10 +185,8 @@
 	function showItems(id, which) {
 		if(document.getElementById(id).style.display == 'block'){
 			clearItems(which);
-			console.log("block");
 		} else {
 			setAllItemsMap(map, which);
-			console.log("none");
 		}
 
 	}
@@ -206,12 +203,12 @@
 	}
 	
 	function createItemDiv(whichItem){
-		for (var i in whichItem){
+		for(var i in whichItem){
 	        var hideItemOptions = {
 	        		gmap: map,
 	        		title: "Click to hide Item",
-	        		id: whichItem[i].iconName,
-	        		label: "Hide " + whichItem[i].iconNamee,				
+	        		id: 'ID' + whichItem[i].iconName + zahl,
+	        		label: "Hide " + whichItem[i].iconName + zahl,				
 	        		action: function(){
 	        			showItems(hideItemOptions.id, whichItem);
 	        		}        		        		
@@ -219,9 +216,10 @@
 	        var check1 = new checkBox(hideItemOptions);
 	
 	        itemDiv.push(check1);
-	        break;
-		}
-	}  
+	        zahl ++;
+		break;
+		}  
+	}
 	
     function createItemDropDown(){
     	
