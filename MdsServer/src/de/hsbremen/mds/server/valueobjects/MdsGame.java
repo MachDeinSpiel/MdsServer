@@ -59,10 +59,7 @@ public class MdsGame {
 		this.players.add(p);
 		this.playerID++;
 	}
-	
-	public synchronized void removePlayer(MdsPlayer p) {
-		this.players.remove(p);
-	}
+
 	
 	public synchronized void removePlayer(WebSocket conn) {
 		this.players.remove(conn);
@@ -124,12 +121,14 @@ public class MdsGame {
 		return this.templateID;
 	}
 	
-	public void kickPlayer(WebSocket conn, JSONObject mess) {
+	public WebSocket kickPlayer(WebSocket conn, JSONObject mess) {
 		if (this.getPlayer(conn).isInitinal()){
 			int kick = mess.getInt("player");
 			MdsPlayer p = this.getPlayer(kick);
-			this.removePlayer(p);
+			this.players.remove(p);
+			return p.getWS();
 		}
+		return null;
 		
 	}
 
@@ -216,6 +215,23 @@ public class MdsGame {
 
 	public Integer getGameID() {
 		return this.gameID;
+	}
+
+	public void notifyLobby() {
+		String message = this.getGameState().toString();
+		for(MdsPlayer pl : this.players) {
+			pl.getWS().send(message);
+		}
+		
+	}
+	
+	public JSONObject getGameState() {
+		JSONObject response = new JSONObject();
+		response.put("mode", "gamelobby");
+		response.put("action", "players");
+		JSONArray players = this.getAllPlayers();
+		response.put("players", players);
+		return response;
 	}
 		
 
