@@ -1,0 +1,46 @@
+      #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        margin-left: 20px;
+        margin-top: 20px;
+        border: 2px solid #123;
+      }
+       #headerPanel {
+        font-family: "Century Gothic", CenturyGothic, Geneva, AppleGothic, sans-serif;
+        font-size: 150%;
+		width: 600px;
+		left: 35px;
+		top: 55px;
+		margin-left: 20px;     
+	    margin-top: 20px;
+		margin-right: 10px;
+       
+      }
+       #panel {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        margin-left: -180px;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+      }
+        #controlPanel {
+		height: 100%;
+		width: 300px;
+		right: 35px;
+		position: absolute;
+		padding: 10px;
+		top: 150px;
+		margin-top: 0px;
+		margin-right: 20px;
+		margin-bottom: 0px;
+      }
+      
+       #dropdown{
+        font-family: "Century Gothic", CenturyGothic, Geneva, AppleGothic, sans-serif;
+        font-size: 125%;
+
+       }

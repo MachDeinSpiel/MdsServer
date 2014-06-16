@@ -4,6 +4,7 @@ function WebsocketService(){
             var ws;
         	var whiteboard = new Whiteboard();
         	var open = false;
+        	var controlDiv = new ControlDiv();
     		var mydropdown = document.getElementById('dropdown');
 
 
@@ -25,9 +26,6 @@ function WebsocketService(){
 	   					obj = JSON.parse(message);
 	   					var changings = [];
 	   					var values = [];
-	   					if (obj.mode == "full"){
-	   						whiteboard = new Whiteboard();
-	   					}
 	   					if(!(obj.data == null)){
 	   						for(var i = 0; i<obj.data.length; i++){
 		   						changings[i] = obj.data[i].path;
@@ -51,7 +49,15 @@ function WebsocketService(){
                 
         		mydropdown.onclick = function(){
                 	document.getElementById('log').value = "[WebSocket#onmessage] Message: '" + this.value + "'\n";
+					for (var i in whiteboard){
+   						if(typeof whiteboard[i] === 'object'){				
+   							clearItems(whiteboard[i]);
+   						}
+					}
+   					whiteboard = new Whiteboard();
         			ws.send(this.value);
+
+        			
         		}
             
 

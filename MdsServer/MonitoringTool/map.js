@@ -98,13 +98,20 @@
 			if((typeof totalItem[i].latitude !='undefined') &&  (typeof totalItem[i].latitude !='undefined')){
 				var myLatlng = new google.maps.LatLng(totalItem[i].latitude, totalItem[i].longitude);
 			}
-		    if (totalItem[i].marker == null) { // Create new marker if not already exist
+		    if (totalItem[i].marker == null) {// Create new marker if not already exist
+		    	var image = new google.maps.MarkerImage(
+		    			item[i].imagePath,
+		    		    null, /* size is determined at runtime */
+		    		    null, /* origin is 0,0 */
+		    		    null, /* anchor is bottom center of the scaled image */
+		    		    new google.maps.Size(42, 68)
+		    		);  
 		    	totalItem[i].marker = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
 		        	title: item[i].iconName,
-		        	//icon: item[i].imagePath
+		        	icon: image
 		        });
 		    } else { // update the marker
 		    	totalItem[i].marker.setPosition(myLatlng);
@@ -174,7 +181,9 @@
 	//Sets the map on all markers in the array.
 	function setAllItemsMap(map, whichItem) {
 	  for (var i in whichItem) {
-	    whichItem[i].marker.setMap(map);
+		  if(typeof whichItem[i].marker != 'undefined'){
+			  whichItem[i].marker.setMap(map);
+		  }
 	  }
 	}
 	
@@ -189,12 +198,6 @@
 			setAllItemsMap(map, which);
 		}
 
-	}
-	
-	// Deletes all markers in the array by removing references to them.
-	function deletePlayers() {
-	  clearMarkers();
-	  players = [];
 	}
 	
 	// focus on the playermarker

@@ -4,31 +4,22 @@
    <title>MDS Monitoring-Tool</title>
      <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <style>
-      html, body, #map-canvas {
-        height: 100%;
-        margin: 0px;
-        padding: 0px
-      }
-       #panel {
-        position: absolute;
-        top: 5px;
-        left: 50%;
-        margin-left: -180px;
-        z-index: 5;
-        background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-      }
+	<style>
     </style>
+    <link href="style.css" type="text/css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.0/css/jquery.dataTables.css">
     <link rel="stylesheet" type="text/css" href="dropDown.css" />
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
     <script type="text/javascript" src="WebsocketService.js"></script>
     <script type="text/javascript" src="Whiteboard.js"></script>
     <script type="text/javascript" src="map.js"></script>
     <script type="text/javascript" src="prototype.js"></script>
     <script type="text/javascript" src="dropDownMenu.js"></script>
+    <script type="text/javascript" src="Table.js"></script>
+    <script type="text/javascript" src="ControlDiv.js"></script>
+
 	<script>
 			window.onload = function(){
 				var wss = new WebsocketService();
@@ -37,19 +28,21 @@
 	</script>
   </head>
   <body>
-  	<h1>MDS-Monitoring Tool</>
-  	  <select id="dropdown" class="styled-button">
-    <option value=''>---- Globale Lobby ----</option>
-    <option value='{"mode":"gametemplates"}'>1. Verfügbare Spiele anfordern</option>
-    <option value='{"mode":"activegames"}'>2. Laufende Spiele anfordern</option>
-    <option value='{"mode":"monitor", "id":0, "name":"Monitor1"}'>1. Spiel betrachten</option>
-	</select>
-    </form>     
+  
+  <div id="headerPanel">
+    <img class="headerPanel" src="images/MDS-Logo.png" alt="Das Bild konnte nicht geladen werden" style= "width:40%; height:40%" border="0"> 	  
+ 	  - Monitoring Tool
+  </div>
     <div id="map-canvas" style= "width:900px; height:500px"> </div>
-       <div id="panel2">
-      <input onclick="onSendMessage();" type=button value="Join BombDefuser">
-    </div>
-      <form><textarea id="log" rows="30" cols="100" style="font-family:monospace; color:red;"></textarea></form><br>
+    <div id="controlPanel" value='Control Panel'> 
+	    <select id="dropdown" class="styled-button">
+	    <option value=''>---- Globale Lobby ----</option>
+	    <option value='{"mode":"gametemplates"}'>1. Verfügbare Spiele anfordern</option>
+	    <option value='{"mode":"activegames"}'>2. Laufende Spiele anfordern</option>
+	    <option value='{"mode":"monitor", "id":0, "name":"Monitor1"}'>3. Spiel betrachten</option>
+		</select>   
+	</div>
+    <form><textarea id="log" rows="30" cols="100" style="font-family:monospace; color:red; margin-left: 20px;"></textarea></form><br>
 
   </body>
 </html>
