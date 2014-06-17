@@ -43,7 +43,7 @@ function generate_table(whiteboard) {
 				var cellTextHealth = document.createTextNode('health');
 				var cellTextInventory = document.createTextNode('inventory');
 			} else {
-				var cellTextPlayer = document.createTextNode('dummy ' + i);
+				var cellTextPlayer = document.createTextNode('dummy_' + i);
 				var cellTextHealth = document.createTextNode(tblContentPlayers[i].health);
 				var cellTextInventory = document.createTextNode(tblContentPlayers[i].inventory);
 			}
