@@ -72,7 +72,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 				try {
 					whiteboard.setAttributeValue(entry.getValue(), this.getStringArrayPath(keys));
 					for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-						this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
+						if (!mapEntry.getValue().equals(conn)) {
+							this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
+						}	
 					}
 				} catch (InvalidWhiteboardEntryException e) {
 					e.printStackTrace();
