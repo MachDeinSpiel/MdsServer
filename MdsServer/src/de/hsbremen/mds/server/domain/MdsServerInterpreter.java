@@ -47,34 +47,37 @@ public class MdsServerInterpreter implements ComServerInterface {
 		}else{
 			// Lokales WB aktualisieren
 			this.onWhiteboardUpdate(keys, entry);
-				System.out.println("########");
-				System.out.println(entry.getValue().toString());
-				if(entry.getValue() instanceof Whiteboard){
-					try {
-						makeWhiteboardList((Whiteboard) entry.getValue(), keys);
-					} catch (InvalidWhiteboardEntryException e) {
-						e.printStackTrace();
+			System.out.println("########");
+			System.out.println(entry.getValue().toString());
+			if(entry.getValue() instanceof Whiteboard){
+				try {
+					makeWhiteboardList((Whiteboard) entry.getValue(), keys);
+					// Allen anderen Clients das Update schicken
+					for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
+						if (!mapEntry.getValue().equals(conn)) {
+							for(Iterator<WhiteboardUpdateObject> iter = this.whiteboardUpdateObjects.iterator(); iter.hasNext();){
+								WhiteboardUpdateObject wbupdateObj = iter.next();
+								WhiteboardEntry wbentry = wbupdateObj.getValue();
+								List<String> path = wbupdateObj.getKeys();
+								this.comServer.sendUpdate(mapEntry.getValue(), path, wbentry);
+							}
+						}	
 					}
-				}else{
-					try {
-						whiteboard.setAttributeValue(entry.getValue(), this.getStringArrayPath(keys));
-					} catch (InvalidWhiteboardEntryException e) {
-						e.printStackTrace();
-					}
+					this.whiteboardUpdateObjects.clear();
+				} catch (InvalidWhiteboardEntryException e) {
+					e.printStackTrace();
 				}
-				
-			// Allen anderen Clients das Update schicken
-			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-				if (!mapEntry.getValue().equals(conn)) {
-					for(Iterator<WhiteboardUpdateObject> iter = this.whiteboardUpdateObjects.iterator(); iter.hasNext();){
-						WhiteboardUpdateObject wbupdateObj = iter.next();
-						WhiteboardEntry wbentry = wbupdateObj.getValue();
-						List<String> path = wbupdateObj.getKeys();
-						this.comServer.sendUpdate(mapEntry.getValue(), path, wbentry);
+			}else{
+				//Verschickt nur ein WhiteboardEntry. In dem z.b die Positionen gaendert wurden.
+				try {
+					whiteboard.setAttributeValue(entry.getValue(), this.getStringArrayPath(keys));
+					for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
+						this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
 					}
-				}	
+				} catch (InvalidWhiteboardEntryException e) {
+					e.printStackTrace();
+				}
 			}
-			this.whiteboardUpdateObjects.clear();
 		}
 	}
 
