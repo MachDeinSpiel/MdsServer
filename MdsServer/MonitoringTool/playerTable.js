@@ -44,8 +44,9 @@ function generate_table(whiteboard) {
 				var cellTextInventory = document.createTextNode('inventory');
 			} else {
 				var cellTextPlayer = document.createTextNode('dummy_' + i);
-				var cellTextHealth = document.createTextNode(tblContentPlayers[i].health);
-				var cellTextInventory = document.createTextNode(tblContentPlayers[i].inventory);
+//				var cellTextHealth = document.createTextNode(tblContentPlayers[i+1].pathKey);
+				var cellTextHealth = document.createTextNode(tblContentPlayers[i+1].health);
+				var cellTextInventory = document.createTextNode(tblContentPlayers[i+1].inventory);
 			}
 //			cell.appendChild(cellText);
 			var cell = document.createElement("td");
