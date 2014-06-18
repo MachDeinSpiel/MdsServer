@@ -481,8 +481,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 		// Ueberprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("Reading JSON successful.");
-			System.out.println(json.length());
+			System.out.println("Reading JSON successful: " + json.length());
 		} else {
 			System.out.println("Reading JSON failed.");
 		}
