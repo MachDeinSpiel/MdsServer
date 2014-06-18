@@ -40,8 +40,9 @@ import de.hsbremen.mds.server.valueobjects.MdsPlayer;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "06.16 (master Branch)";
+	private static final String version = "MdsComServer 06.18 (devLogin Branch)";
 	private JSONObject gameTemplates;
+	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
 	private Map<WebSocket, Integer> monitors;
 	private Map<WebSocket, Integer> playingClients;
@@ -52,6 +53,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		super(new InetSocketAddress(port));
 		this.initGames(file);
 		this.waitingClients = new Vector<WebSocket>();
+		this.loggedInClients = new Vector<WebSocket>();
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.monitors = new HashMap<WebSocket, Integer>();
 		this.games = new HashMap<Integer, MdsGame>();
@@ -111,7 +113,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		g.setClientURL(curl);
 		g.setServerURL(surl);
 		this.playingClients.put(conn, gameID);
-		this.waitingClients.remove(conn);
+		this.loggedInClients.remove(conn);
 		this.games.put(gameID, g);
 		this.notifyLobby();
 		g.notifyLobby();
@@ -127,7 +129,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				MdsPlayer p = new MdsPlayer(conn, name, g.getPlayerID(), false);
 				g.putPlayer(p);
 				this.playingClients.put(conn, gameID);
-				this.waitingClients.remove(conn);
+				this.loggedInClients.remove(conn);
 				this.notifyLobby();
 				g.notifyLobby();
 			} else {
@@ -196,6 +198,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+		if (this.loggedInClients.contains(conn)) {
+			this.loggedInClients.remove(conn);
+		
+		}
+		
 		if (this.waitingClients.contains(conn)) {
 			this.waitingClients.remove(conn);
 		
@@ -269,9 +276,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					if (action.equals("kick")) {
 						WebSocket kicked = g.kickPlayer(conn, mes);
 						if (kicked != null) {
-							this.movePlayerToLobby(kicked);
 							this.notifyLobby();
 							g.notifyLobby();
+							this.movePlayerToLobby(kicked);
 						}
 						
 					}
@@ -291,7 +298,15 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				}
 			} 
 			
+			
 			if (this.waitingClients.contains(conn)) {
+				if (mode.equals("login")) {
+					this.loginClient(conn, mes);
+				}
+
+			}
+			
+			if (this.loggedInClients.contains(conn)) {
 				if (mode.equals("join")) {
 					this.joinGame(conn, mes);
 				}
@@ -299,16 +314,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				if (mode.equals("create")) {
 					this.createGame(conn, mes);
 				}
-			}
-	
-			
-			if (mode.equals("gametemplates")) {
-				conn.send(this.gameTemplates.toString());
-			}
-			
-			if (mode.equals("activegames")) {
-				JSONObject activeGames = this.getActiveGames();
-				conn.send(activeGames.toString());	
+				if (mode.equals("gametemplates")) {
+					conn.send(this.gameTemplates.toString());
+				}
+				
+				if (mode.equals("activegames")) {
+					JSONObject activeGames = this.getActiveGames();
+					conn.send(activeGames.toString());	
+				}
 			}
 			
 			if (mode.equals("monitor")) {
@@ -320,7 +333,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				
 					this.monitors.put(conn, gameID);
 					this.games.get(gameID).getInterpreter().attachMonitor(name, conn);
-					this.waitingClients.remove(conn);
+					this.loggedInClients.remove(conn);
 				
 				} else {
 					JSONObject response = new JSONObject();
@@ -341,6 +354,16 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 
+	private void loginClient(WebSocket conn, JSONObject mes) {
+		// TODO Auto-generated method stub
+		
+		this.waitingClients.remove(conn);
+		this.loggedInClients.add(conn);
+		conn.send(this.gameTemplates.toString());
+		
+		
+	}
+
 	private JSONObject getActiveGames() {
 		
 		JSONObject activeGames = new JSONObject();
@@ -357,7 +380,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 
 	private void notifyLobby() {
-		for(WebSocket ws : this.waitingClients) {
+		for(WebSocket ws : this.loggedInClients) {
 			ws.send(this.getActiveGames().toString());
 		}		
 	}
@@ -472,7 +495,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		System.out.println("\n---------------- STATS ----------------");
 		
 		System.out.println(this.monitors.size() + " Monitors(s) watching");
-		System.out.println(this.waitingClients.size() + " Player(s) in the main lobby");
+		System.out.println(this.loggedInClients.size() + " Player(s) in the main lobby");
 		System.out.println(this.playingClients.size() + " Player(s) in games");
 		System.out.println(this.games.size() + " Game(s) active\n");
 		System.out.println("Version: " + version + "\n\n");
@@ -481,7 +504,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	public void movePlayerToLobby(WebSocket ws) {
 		this.playingClients.remove(ws);
-		this.waitingClients.add(ws);
+		this.loggedInClients.add(ws);
+		ws.send(this.gameTemplates.toString());
 		
 		
 	}
