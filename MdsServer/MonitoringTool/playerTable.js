@@ -1,8 +1,3 @@
-
-
-
-//var whiteboard = this.Whiteboard;
-
 function delete_table()	{
 
 	if (document.getElementById("players_table")) {
@@ -12,18 +7,15 @@ function delete_table()	{
 
 function generate_table(whiteboard) {
 	
-	var wb = whiteboard;
-	console.log(wb);
-//	if (whiteboard) {
-//		var wb = whiteboard.Players;
-//		console.log("whiteboard: " + wb);
-//	}
-//	var wp = whiteboard.Players;
-//	var wph = whiteboard.Players.health;
-//	console.log("whiteboard Players: " + wp);
-//	console.log("whiteboard Players health: " + wph);
+	if (whiteboard) {
+		var tblContentPlayers = new Array(whiteboard);
+		console.log("tblContentPlayers: " + tblContentPlayers[0]);
+//		var tblContentPlayers = ["das","ist","ein","test"];		
+//		console.log("Players: " + tblContentPlayers);
+	}
 	
 	delete_table();
+	
 	// get the reference for the body
 	var body = document.getElementsByTagName("body")[0];
  
@@ -31,28 +23,64 @@ function generate_table(whiteboard) {
 	var tbl = document.createElement("table");
 	tbl.setAttribute('id','players_table');
 	tbl.setAttribute('border','2');
-  var tblBody = document.createElement("tbody");
+	var tblBody = document.createElement("tbody");
   
-//  counter (entspricht anz Spieler) and table content
-  var tblPlayers = ["player1","p2","p3","p4"];
+//	in case of undefined data
+	var noData = ["keine","Daten","verfuegbar"];
   
-  // creating all cells
-  for (var i = 0; i < tblPlayers.length; i++) {
-    // creates a table row
-    var row = document.createElement("tr");
+	// creating all cells
+//	bedingung???
+	if (whiteboard) {
+		for (var i = 0; i <= tblContentPlayers.length; i++) {
+			// creates a table row
+			var row = document.createElement("tr");
+			// Create a <td> element and a text node, make the text
+			// node the contents of the <td>, and put the <td> at
+			// the end of the table row
+//			var cell = document.createElement("td");
+			if (i = 0) {
+				var cellTextPlayer = document.createTextNode('Player');
+				var cellTextHealth = document.createTextNode('health');
+				var cellTextInventory = document.createTextNode('inventory');
+			} else {
+				var cellTextPlayer = document.createTextNode('dummy_' + i);
+//				var cellTextHealth = document.createTextNode(tblContentPlayers[i-1].pathKey);
+				var cellTextHealth = document.createTextNode(tblContentPlayers[i-1].health);
+				var cellTextInventory = document.createTextNode(tblContentPlayers[i-1].inventory);
+			}
+//			cell.appendChild(cellText);
+			var cell = document.createElement("td");
+			cell.appendChild(cellTextPlayer);
+			row.appendChild(cell);
+			cell = document.createElement("td");
+			cell.appendChild(cellTextHealth);
+			row.appendChild(cell);
+			cell = document.createElement("td");
+			cell.appendChild(cellTextInventory);
+			row.appendChild(cell);
  
-      // Create a <td> element and a text node, make the text
-      // node the contents of the <td>, and put the <td> at
-      // the end of the table row
-      var cell = document.createElement("td");
-      var cellText = document.createTextNode(tblPlayers[i]);
-      cell.appendChild(cellText);
-      row.appendChild(cell);
- 
-    // add the row to the end of the table body
-    tblBody.appendChild(row);
-  }
-  
+			// add the row to the end of the table body
+			tblBody.appendChild(row);
+		}
+	} 
+//	else {
+//		tblContentPlayers = noData;
+//		for (var i = 0; i < tblContentPlayers.length; i++) {
+//			// creates a table row
+//			var row = document.createElement("tr");
+//	 
+//			// Create a <td> element and a text node, make the text
+//			// node the contents of the <td>, and put the <td> at
+//			// the end of the table row
+//			var cell = document.createElement("td");
+//			var cellText = document.createTextNode(tblContentPlayers[i]);
+//			cell.appendChild(cellText);
+//			row.appendChild(cell);
+//	 
+//			// add the row to the end of the table body
+//			tblBody.appendChild(row);
+//		}	
+//	}
  
   // put the <tbody> in the <table>
   tbl.appendChild(tblBody);

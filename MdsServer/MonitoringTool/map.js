@@ -54,7 +54,8 @@
 			createItemDropDown();
 			first = !first;
 		}
-	
+
+		generate_table(whiteboard);
 
 		return whiteboard;
 	
