@@ -15,20 +15,25 @@
     var dropDown1;
     var dropDown2;
     var first = true;
-    var zahl = 0;
 
 	// array for DropDown information
 	var playersDiv = [];
 
 	// initializing player information window
 	function createInfoWindowContent(player) {	
-	  return [
+	  if(typeof player.inventory != 'undefined'){
+		  return [
 	     player.marker.title,
-	    'Position: ' + player.marker.position,
-	    'Health: ' + player.health,
-		'Team: ' + '  '
-		
+	     'Position: ' + player.marker.position,
+		 'Health: ' + player.health,
+	     'Inventory: ' + player.inventory
+	    
 	  ].join('<br>');
+	  }
+	  return [
+	 	     player.marker.title,
+	 	     'Position: ' + player.marker.position, 	    
+	 	  ].join('<br>');
 	}
 	
 	// major update function
@@ -104,13 +109,13 @@
 		    		    null, /* size is determined at runtime */
 		    		    null, /* origin is 0,0 */
 		    		    null, /* anchor is bottom center of the scaled image */
-		    		    new google.maps.Size(42, 68)
+		    		    new google.maps.Size(40, 40)
 		    		);  
 		    	totalItem[i].marker = new google.maps.Marker({
 		        	position: myLatlng,
 		        	map: map,
 		        	animation: google.maps.Animation.DROP,
-		        	title: item[i].iconName,
+		        	title: item[i].pathKey,
 		        	icon: image
 		        });
 		    } else { // update the marker
@@ -207,11 +212,15 @@
 	
 	function createItemDiv(whichItem){
 		for(var i in whichItem){
+			var labelName = whichItem[i].title;
+			if(whichItem[i].pathKey == 'template'){
+				labelName = 'Player'
+			}
 	        var hideItemOptions = {
 	        		gmap: map,
 	        		title: "Click to hide Item",
-	        		id: 'ID' + whichItem[i].iconName + zahl,
-	        		label: "Hide " + whichItem[i].iconName + zahl,				
+	        		id: 'ID' + whichItem[i].pathKey,
+	        		label: "Hide " + labelName,				
 	        		action: function(){
 	        			showItems(hideItemOptions.id, whichItem);
 	        		}        		        		
@@ -219,7 +228,6 @@
 	        var check1 = new checkBox(hideItemOptions);
 	
 	        itemDiv.push(check1);
-	        zahl ++;
 		break;
 		}  
 	}

@@ -4,7 +4,6 @@ function WebsocketService(){
             var ws;
         	var whiteboard = new Whiteboard();
         	var open = false;
-        	var controlDiv = new ControlDiv();
     		var mydropdown = document.getElementById('dropdown');
 
 
