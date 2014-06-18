@@ -17,7 +17,6 @@ function generate_table(whiteboard) {
 	delete_table();
 	
 	// get the reference for the body
-	var body = document.getElementsByTagName("body")[0];
 	var div = document.getElementById("controlPanel");
 	// creates the <table> element and creates a <tbody> element
 	var tbl = document.createElement("table");
@@ -99,7 +98,6 @@ function addRowHandlers() {
         	return function() {
         		var cell = row.getElementsByTagName("td")[0];
         		var id = cell.innerHTML;
-        		// Hier könnte der Aufruf für die Ausgabe des Inventars stehen
         		alert("id:" + id);
         	};
         };
