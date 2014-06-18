@@ -380,8 +380,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 
 	private void notifyLobby() {
+		String response = this.getActiveGames().toString();
 		for(WebSocket ws : this.loggedInClients) {
-			ws.send(this.getActiveGames().toString());
+			ws.send(response);
 		}		
 	}
 
