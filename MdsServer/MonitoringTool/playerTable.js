@@ -38,15 +38,16 @@ function generate_table(whiteboard) {
 			// node the contents of the <td>, and put the <td> at
 			// the end of the table row
 //			var cell = document.createElement("td");
-			if (i = 0) {
+			if (i === 0) {
 				var cellTextPlayer = document.createTextNode('Player');
 				var cellTextHealth = document.createTextNode('health');
 				var cellTextInventory = document.createTextNode('inventory');
 			} else {
-				var cellTextPlayer = document.createTextNode('dummy_' + i);
-//				var cellTextHealth = document.createTextNode(tblContentPlayers[i-1].pathKey);
-				var cellTextHealth = document.createTextNode(tblContentPlayers[i-1].health);
-				var cellTextInventory = document.createTextNode(tblContentPlayers[i-1].inventory);
+				var x = i - 1;
+				var cellTextPlayer = document.createTextNode('dummy_' + x);
+//				var cellTextHealth = document.createTextNode(tblContentPlayers[x].pathKey);
+				var cellTextHealth = document.createTextNode(tblContentPlayers[x].health);
+				var cellTextInventory = document.createTextNode(tblContentPlayers[x].inventory);
 			}
 //			cell.appendChild(cellText);
 			var cell = document.createElement("td");
