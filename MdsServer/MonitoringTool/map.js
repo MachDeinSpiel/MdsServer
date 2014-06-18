@@ -193,9 +193,9 @@ var map;
 	  }
 	}
 	
-	function clearItems(which) {
+	Map.prototype.clearItems = function(which){
 		  setAllItemsMap(null, which);
-		}
+	}
 	
 	function showItems(id, which) {
 		if(document.getElementById(id).style.display == 'block'){
@@ -257,7 +257,7 @@ var map;
 	
 	
 	// initializing the actual map
-	Map.prototype.initialize = function (){	
+	Map.prototype.initialize = function(){	
 		var mapOptions = {
 			zoom: 14,
 			center: bremen
