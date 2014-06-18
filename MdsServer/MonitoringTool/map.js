@@ -1,4 +1,6 @@
-	var map;
+function Map(){
+
+var map;
 	var TILE_SIZE = 256;
 	var bremen = new google.maps.LatLng(53.05437, 8.78788);
 	var player= 1;
@@ -37,10 +39,8 @@
 	}
 	
 	// major update function
-	function update(changings, qwhiteboard, values){
+	Map.prototype.update = function (qwhiteboard){	
 		whiteboard = qwhiteboard;
-		whiteboard.updateWhiteboard(changings, whiteboard, values);
-		updatePlayers(whiteboard);
 		for (var i in whiteboard){
 			if(typeof whiteboard[i] === 'object'){				
 				updateItems(whiteboard[i]);
@@ -193,9 +193,9 @@
 	  }
 	}
 	
-	function clearItems(which) {
+	Map.prototype.clearItems = function(which){
 		  setAllItemsMap(null, which);
-		}
+	}
 	
 	function showItems(id, which) {
 		if(document.getElementById(id).style.display == 'block'){
@@ -257,7 +257,7 @@
 	
 	
 	// initializing the actual map
-	function initialize() {
+	Map.prototype.initialize = function(){	
 		var mapOptions = {
 			zoom: 14,
 			center: bremen
@@ -308,8 +308,8 @@
         //Player DropDown
         dropDown1 = new dropDownControl(dropDownOptions);
  
-
+        return map;
 		
 	}
-
-google.maps.event.addDomListener(window, 'load', initialize);
+}
+//google.maps.event.addDomListener(window, 'load', initialize);

@@ -2,6 +2,8 @@ function WebsocketService(){
 
 
             var ws;
+            var map = new Map();
+            map.initialize();
         	var whiteboard = new Whiteboard();
         	var open = false;
     		var mydropdown = document.getElementById('dropdown');
@@ -34,6 +36,7 @@ function WebsocketService(){
 		
 	   				//Updatefunktion zur aktualisierung der Standortdaten der Spieler
 
+	   					
 			       		whiteboard = update(changings, whiteboard, values);
 		       			console.log(whiteboard);
 		   				
@@ -50,7 +53,7 @@ function WebsocketService(){
                 	document.getElementById('log').value = "[WebSocket#onmessage] Message: '" + this.value + "'\n";
 					for (var i in whiteboard){
    						if(typeof whiteboard[i] === 'object'){				
-   							clearItems(whiteboard[i]);
+   							map.clearItems(whiteboard[i]);
    						}
 					}
    					whiteboard = new Whiteboard();
@@ -59,6 +62,15 @@ function WebsocketService(){
         			
         		}
             
-
+        		// major update function
+        		function update(changings, whiteboard, values){
+        			whiteboard.updateWhiteboard(changings, whiteboard, values);
+        			map.update(whiteboard);
+        
+        			generate_table(whiteboard);
+        
+        			return whiteboard;
+        	
+        	}
         
 }
