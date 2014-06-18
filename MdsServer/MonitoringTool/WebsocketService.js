@@ -2,6 +2,8 @@ function WebsocketService(){
 
 
             var ws;
+            var map = new Map();
+            map.initialize();
         	var whiteboard = new Whiteboard();
         	var open = false;
     		var mydropdown = document.getElementById('dropdown');
@@ -34,6 +36,7 @@ function WebsocketService(){
 		
 	   				//Updatefunktion zur aktualisierung der Standortdaten der Spieler
 
+	   					
 			       		whiteboard = update(changings, whiteboard, values);
 		       			console.log(whiteboard);
 		   				
@@ -59,6 +62,15 @@ function WebsocketService(){
         			
         		}
             
-
+        		// major update function
+        		function update(changings, whiteboard, values){
+        			whiteboard.updateWhiteboard(changings, whiteboard, values);
+        			map.update(whiteboard);
+        
+        			generate_table(whiteboard);
+        
+        			return whiteboard;
+        	
+        	}
         
 }
