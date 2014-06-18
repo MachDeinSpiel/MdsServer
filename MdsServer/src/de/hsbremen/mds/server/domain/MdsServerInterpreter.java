@@ -42,7 +42,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 		if(entry.getValue().equals("delete")){
 			this.removeWhiteboard(conn, keys);
 			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-				this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
+				if(!mapEntry.getValue().equals(conn)){
+					this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
+				}
 			}			
 		}else{
 			// Lokales WB aktualisieren
