@@ -18,7 +18,7 @@ function generate_table(whiteboard) {
 	
 	// get the reference for the body
 	var body = document.getElementsByTagName("body")[0];
- 
+	var div = document.getElementById("controlPanel");
 	// creates the <table> element and creates a <tbody> element
 	var tbl = document.createElement("table");
 	tbl.setAttribute('id','players_table');
@@ -86,7 +86,7 @@ function generate_table(whiteboard) {
   // put the <tbody> in the <table>
   tbl.appendChild(tblBody);
   // appends <table> into <body>
-  body.appendChild(tbl);
+  div.appendChild(tbl);
   addRowHandlers();
 }
 
