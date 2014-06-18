@@ -192,8 +192,11 @@ var map;
 		  }
 	  }
 	}
+	Map.prototype.clearMapItems = function(which){
+		clearItems(which);
+	}
 	
-	Map.prototype.clearItems = function(which){
+	function clearItems(which){
 		  setAllItemsMap(null, which);
 	}
 	

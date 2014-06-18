@@ -53,7 +53,7 @@ function WebsocketService(){
                 	document.getElementById('log').value = "[WebSocket#onmessage] Message: '" + this.value + "'\n";
 					for (var i in whiteboard){
    						if(typeof whiteboard[i] === 'object'){				
-   							map.clearItems(whiteboard[i]);
+   							map.clearMapItems(whiteboard[i]);
    						}
 					}
    					whiteboard = new Whiteboard();
