@@ -45,7 +45,7 @@ import de.hsbremen.mds.server.valueobjects.MdsPlayer;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 06.18 (devLogin Branch)";
+	private static final String version = "MdsComServer 06.19 (master Branch)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -79,7 +79,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.dbConnection = null;
 	 
 		try {
-			dbConnection = DriverManager.getConnection("jdbc:mysql://apertures.de:3306","d01adcc4", "6wt6ozCEy7MWDaGX");
+			dbConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306","mds_accounts", "mdsistfett");
 	 
 		} catch (SQLException e) {
 			System.out.println("Database Connection Failed!");
@@ -558,7 +558,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private boolean checkUserLogin(String username, String password) {
 		
 		try (Statement stmt = dbConnection.createStatement(); 
-			    ResultSet rs = stmt.executeQuery( "SELECT password FROM d01adcc4.users WHERE username LIKE '" + username + "' LIMIT 1;")
+			    ResultSet rs = stmt.executeQuery( "SELECT password FROM mds_accounts.users WHERE username LIKE '" + username + "' LIMIT 1;")
 			) {
 			    while ( rs.next() ) {
 			        int numColumns = rs.getMetaData().getColumnCount();
