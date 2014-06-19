@@ -12,6 +12,11 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,22 +45,53 @@ import de.hsbremen.mds.server.valueobjects.MdsPlayer;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "06.16 (master Branch)";
+	private static final String version = "MdsComServer 06.18 (devLogin Branch)";
 	private JSONObject gameTemplates;
+	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
 	private Map<WebSocket, Integer> monitors;
 	private Map<WebSocket, Integer> playingClients;
 	private Map<Integer, MdsGame> games;
+	private Connection dbConnection;
 		
 	
 	public MdsComServer(int port, File file) throws UnknownHostException {
 		super(new InetSocketAddress(port));
 		this.initGames(file);
 		this.waitingClients = new Vector<WebSocket>();
+		this.loggedInClients = new Vector<WebSocket>();
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.monitors = new HashMap<WebSocket, Integer>();
 		this.games = new HashMap<Integer, MdsGame>();
+		this.initDatabase();
 		
+		
+		
+	}
+
+	private void initDatabase() {
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e1) {
+			System.out.println("JDBC Driver not found!");
+			e1.printStackTrace();
+		}
+		this.dbConnection = null;
+	 
+		try {
+			dbConnection = DriverManager.getConnection("jdbc:mysql://apertures.de:3306","d01adcc4", "6wt6ozCEy7MWDaGX");
+	 
+		} catch (SQLException e) {
+			System.out.println("Database Connection Failed!");
+			e.printStackTrace();
+			return;
+		}
+	 
+		if (dbConnection != null) {
+			System.out.println("Database connection established.");
+		} else {
+			System.out.println("Failed to connect to database.");
+		}
 	}
 
 	public MdsComServer(InetSocketAddress address) {
@@ -111,7 +147,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		g.setClientURL(curl);
 		g.setServerURL(surl);
 		this.playingClients.put(conn, gameID);
-		this.waitingClients.remove(conn);
+		this.loggedInClients.remove(conn);
 		this.games.put(gameID, g);
 		this.notifyLobby();
 		g.notifyLobby();
@@ -127,7 +163,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				MdsPlayer p = new MdsPlayer(conn, name, g.getPlayerID(), false);
 				g.putPlayer(p);
 				this.playingClients.put(conn, gameID);
-				this.waitingClients.remove(conn);
+				this.loggedInClients.remove(conn);
 				this.notifyLobby();
 				g.notifyLobby();
 			} else {
@@ -196,6 +232,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+		if (this.loggedInClients.contains(conn)) {
+			this.loggedInClients.remove(conn);
+		
+		}
+		
 		if (this.waitingClients.contains(conn)) {
 			this.waitingClients.remove(conn);
 		
@@ -269,9 +310,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					if (action.equals("kick")) {
 						WebSocket kicked = g.kickPlayer(conn, mes);
 						if (kicked != null) {
-							this.movePlayerToLobby(kicked);
 							this.notifyLobby();
 							g.notifyLobby();
+							this.movePlayerToLobby(kicked);
 						}
 						
 					}
@@ -291,7 +332,15 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				}
 			} 
 			
+			
 			if (this.waitingClients.contains(conn)) {
+				if (mode.equals("login")) {
+					this.loginClient(conn, mes);
+				}
+
+			}
+			
+			if (this.loggedInClients.contains(conn)) {
 				if (mode.equals("join")) {
 					this.joinGame(conn, mes);
 				}
@@ -299,16 +348,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				if (mode.equals("create")) {
 					this.createGame(conn, mes);
 				}
-			}
-	
-			
-			if (mode.equals("gametemplates")) {
-				conn.send(this.gameTemplates.toString());
-			}
-			
-			if (mode.equals("activegames")) {
-				JSONObject activeGames = this.getActiveGames();
-				conn.send(activeGames.toString());	
+				if (mode.equals("gametemplates")) {
+					conn.send(this.gameTemplates.toString());
+				}
+				
+				if (mode.equals("activegames")) {
+					JSONObject activeGames = this.getActiveGames();
+					conn.send(activeGames.toString());	
+				}
 			}
 			
 			if (mode.equals("monitor")) {
@@ -320,7 +367,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				
 					this.monitors.put(conn, gameID);
 					this.games.get(gameID).getInterpreter().attachMonitor(name, conn);
-					this.waitingClients.remove(conn);
+					this.loggedInClients.remove(conn);
 				
 				} else {
 					JSONObject response = new JSONObject();
@@ -341,6 +388,27 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 
+	private void loginClient(WebSocket conn, JSONObject mes) {
+		// TODO Auto-generated method stub
+		if(this.checkUserLogin(mes.getString("username"), mes.getString("password"))) {
+			this.waitingClients.remove(conn);
+			this.loggedInClients.add(conn);
+			conn.send(this.gameTemplates.toString());
+		} else {
+			this.sendError(conn, "Login credentials incorrect");
+		}
+		
+		
+	}
+	
+	private void sendError(WebSocket conn, String message) {
+		JSONObject error = new JSONObject();
+		error.put("mode", "error");
+		error.put("message", message);
+		conn.send(error.toString());
+		
+	}
+
 	private JSONObject getActiveGames() {
 		
 		JSONObject activeGames = new JSONObject();
@@ -357,8 +425,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 
 	private void notifyLobby() {
-		for(WebSocket ws : this.waitingClients) {
-			ws.send(this.getActiveGames().toString());
+		String response = this.getActiveGames().toString();
+		for(WebSocket ws : this.loggedInClients) {
+			ws.send(response);
 		}		
 	}
 
@@ -458,8 +527,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 		// Ueberprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("Reading JSON successful.");
-			System.out.println(json.length());
+			System.out.println("Reading JSON successful: " + json.length());
 		} else {
 			System.out.println("Reading JSON failed.");
 		}
@@ -472,7 +540,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		System.out.println("\n---------------- STATS ----------------");
 		
 		System.out.println(this.monitors.size() + " Monitors(s) watching");
-		System.out.println(this.waitingClients.size() + " Player(s) in the main lobby");
+		System.out.println(this.loggedInClients.size() + " Player(s) in the main lobby");
 		System.out.println(this.playingClients.size() + " Player(s) in games");
 		System.out.println(this.games.size() + " Game(s) active\n");
 		System.out.println("Version: " + version + "\n\n");
@@ -481,8 +549,37 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	public void movePlayerToLobby(WebSocket ws) {
 		this.playingClients.remove(ws);
-		this.waitingClients.add(ws);
+		this.loggedInClients.add(ws);
+		ws.send(this.gameTemplates.toString());
 		
+		
+	}
+	
+	private boolean checkUserLogin(String username, String password) {
+		
+		try (Statement stmt = dbConnection.createStatement(); 
+			    ResultSet rs = stmt.executeQuery( "SELECT password FROM d01adcc4.users WHERE username LIKE '" + username + "' LIMIT 1;")
+			) {
+			    while ( rs.next() ) {
+			        int numColumns = rs.getMetaData().getColumnCount();
+			        for ( int i = 1 ; i <= numColumns ; i++ ) {
+			           if(password.equals(rs.getObject(i))){
+			        	   return true;
+			           }
+			        }
+			    }
+				
+//				System.out.println(rs.getObject(0).toString());
+//				return true;
+			
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
+		
+		return false;
 		
 	}
 

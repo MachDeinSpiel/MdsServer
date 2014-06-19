@@ -142,6 +142,19 @@ public class MdsGame {
 		game.put("version", this.version);
 		game.put("clienturl", this.curl);
 		game.put("serverurl", this.surl);
+		
+		String playernames = "";
+		
+		if (this.players.size() > 0) {
+			playernames = this.players.get(0).toString();
+			
+			for (int i = 1; i < this.players.size(); i++) {
+				playernames = playernames + ", " + this.players.get(i).toString();
+			}
+		}
+		System.out.println(playernames);
+		
+		game.put("players", playernames);
 		return game;
 	}
 

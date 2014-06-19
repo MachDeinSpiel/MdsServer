@@ -62,9 +62,9 @@ public class MdsServer {
 
 		// Ueberprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("JSON Einlesen erfolgreich: " + json.length());
+			System.out.println("Reading JSON successful: " + json.length());
 		} else {
-			System.out.println("JSON Einlesen fehlgeschlagen");
+			System.out.println("Reading JSON failed.");
 		}
 
 		return json;
