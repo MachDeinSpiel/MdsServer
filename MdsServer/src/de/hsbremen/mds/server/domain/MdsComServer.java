@@ -12,6 +12,11 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +52,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private Map<WebSocket, Integer> monitors;
 	private Map<WebSocket, Integer> playingClients;
 	private Map<Integer, MdsGame> games;
+	private Connection dbConnection;
 		
 	
 	public MdsComServer(int port, File file) throws UnknownHostException {
@@ -57,7 +63,35 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.monitors = new HashMap<WebSocket, Integer>();
 		this.games = new HashMap<Integer, MdsGame>();
+		this.initDatabase();
 		
+		
+		
+	}
+
+	private void initDatabase() {
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e1) {
+			System.out.println("JDBC Driver not found!");
+			e1.printStackTrace();
+		}
+		this.dbConnection = null;
+	 
+		try {
+			dbConnection = DriverManager.getConnection("jdbc:mysql://apertures.de:3306","d01adcc4", "6wt6ozCEy7MWDaGX");
+	 
+		} catch (SQLException e) {
+			System.out.println("Database Connection Failed!");
+			e.printStackTrace();
+			return;
+		}
+	 
+		if (dbConnection != null) {
+			System.out.println("Database connection established.");
+		} else {
+			System.out.println("Failed to connect to database.");
+		}
 	}
 
 	public MdsComServer(InetSocketAddress address) {
@@ -356,11 +390,22 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	private void loginClient(WebSocket conn, JSONObject mes) {
 		// TODO Auto-generated method stub
+		if(this.checkUserLogin(mes.getString("username"), mes.getString("password"))) {
+			this.waitingClients.remove(conn);
+			this.loggedInClients.add(conn);
+			conn.send(this.gameTemplates.toString());
+		} else {
+			this.sendError(conn, "Login credentials incorrect");
+		}
 		
-		this.waitingClients.remove(conn);
-		this.loggedInClients.add(conn);
-		conn.send(this.gameTemplates.toString());
 		
+	}
+	
+	private void sendError(WebSocket conn, String message) {
+		JSONObject error = new JSONObject();
+		error.put("mode", "error");
+		error.put("message", message);
+		conn.send(error.toString());
 		
 	}
 
@@ -507,6 +552,34 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.loggedInClients.add(ws);
 		ws.send(this.gameTemplates.toString());
 		
+		
+	}
+	
+	private boolean checkUserLogin(String username, String password) {
+		
+		try (Statement stmt = dbConnection.createStatement(); 
+			    ResultSet rs = stmt.executeQuery( "SELECT password FROM d01adcc4.users WHERE username LIKE '" + username + "' LIMIT 1;")
+			) {
+			    while ( rs.next() ) {
+			        int numColumns = rs.getMetaData().getColumnCount();
+			        for ( int i = 1 ; i <= numColumns ; i++ ) {
+			           if(password.equals(rs.getObject(i))){
+			        	   return true;
+			           }
+			        }
+			    }
+				
+//				System.out.println(rs.getObject(0).toString());
+//				return true;
+			
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
+		
+		return false;
 		
 	}
 
