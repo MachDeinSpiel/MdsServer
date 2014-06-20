@@ -12,6 +12,7 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.channels.NotYetConnectedException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -45,7 +46,7 @@ import de.hsbremen.mds.server.valueobjects.MdsPlayer;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 06.19 (master Branch)";
+	private static final String version = "MdsComServer 06.20 (master Branch)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -63,13 +64,16 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.monitors = new HashMap<WebSocket, Integer>();
 		this.games = new HashMap<Integer, MdsGame>();
-		this.initDatabase();
+		this.testDbConnection();
 		
 		
 		
 	}
 
-	private void initDatabase() {
+	private void testDbConnection() {
+		
+		//System.out.println("Checking DB connection ... ");
+		
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch (ClassNotFoundException e1) {
@@ -82,16 +86,40 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			dbConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306","mds_accounts", "mdsistfett");
 	 
 		} catch (SQLException e) {
-			System.out.println("Database Connection Failed!");
-			e.printStackTrace();
+			System.err.println("DB connection test failed!");
 			return;
 		}
 	 
 		if (dbConnection != null) {
-			System.out.println("Database connection established.");
+			System.out.println("DB connection OK.");
+			try {
+				this.dbConnection.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} else {
-			System.out.println("Failed to connect to database.");
+			System.err.println("DB connection test failed!");
 		}
+	}
+	
+	private boolean connectDB() throws SQLException {
+				
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e1) {
+			System.out.println("JDBC Driver not found!");
+			e1.printStackTrace();
+		}
+		this.dbConnection = null;
+		this.dbConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306","mds_accounts", "mdsistfett");
+	 
+		if (this.dbConnection == null) {
+			System.out.println("Unable to establish DB connection.");
+			return false;
+		}
+		
+		return true;
 	}
 
 	public MdsComServer(InetSocketAddress address) {
@@ -379,8 +407,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			}
 			
 		} catch (JSONException e) {
-			System.out.println("Can't create JSONObject from message: '" + message + "'");
-			e.printStackTrace();
+			System.err.println("Can't create JSONObject from message: '" + message + "'");
+			this.sendError(conn, "JSON message '" + message + "' corrupted.");
+			System.err.println(e.getMessage());
 		}
 		
 		this.printState();
@@ -389,16 +418,28 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	
 
 	private void loginClient(WebSocket conn, JSONObject mes) {
-		// TODO Auto-generated method stub
-		if(this.checkUserLogin(mes.getString("username"), mes.getString("password"))) {
-			this.waitingClients.remove(conn);
-			this.loggedInClients.add(conn);
-			conn.send(this.gameTemplates.toString());
-		} else {
-			this.sendError(conn, "Login credentials incorrect");
+		
+		try {
+			if(this.checkUserLogin(mes.getString("username"), mes.getString("password"))) {
+				this.waitingClients.remove(conn);
+				this.loggedInClients.add(conn);
+				conn.send(this.gameTemplates.toString());
+			} else {
+				this.sendError(conn, "Login credentials incorrect");
+			}
+		} catch (NotYetConnectedException e) {
+			System.err.println("Unable to establish DB connection.");
+			this.sendError(conn, "Unable to establish DB connection.");
+			e.printStackTrace();
+		} catch (JSONException e) {
+			this.sendError(conn, "JSON message: '"+ mes +"' corrupted.");
+			e.printStackTrace();
+		} catch (SQLException e) {
+			System.err.println("Unable to establish DB connection.");
+			this.sendError(conn, "Unable to establish DB connection.");
+			e.printStackTrace();
 		}
-		
-		
+			
 	}
 	
 	private void sendError(WebSocket conn, String message) {
@@ -555,30 +596,22 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 	}
 	
-	private boolean checkUserLogin(String username, String password) {
+	private boolean checkUserLogin(String username, String password) throws SQLException {
 		
-		try (Statement stmt = dbConnection.createStatement(); 
-			    ResultSet rs = stmt.executeQuery( "SELECT password FROM mds_accounts.users WHERE username LIKE '" + username + "' LIMIT 1;")
-			) {
-			    while ( rs.next() ) {
-			        int numColumns = rs.getMetaData().getColumnCount();
-			        for ( int i = 1 ; i <= numColumns ; i++ ) {
-			           if(password.equals(rs.getObject(i))){
-			        	   return true;
-			           }
-			        }
-			    }
-				
-//				System.out.println(rs.getObject(0).toString());
-//				return true;
-			
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (this.connectDB()) {
+			Statement stmt = dbConnection.createStatement(); 
+			ResultSet rs = stmt.executeQuery( "SELECT password FROM mds_accounts.users WHERE username LIKE '" + username + "' LIMIT 1;");
+			while ( rs.next() ) {
+				int numColumns = rs.getMetaData().getColumnCount();
+				for ( int i = 1 ; i <= numColumns ; i++ ) {
+					if(password.equals(rs.getObject(i))){
+						this.dbConnection.close();
+						return true;
+				    }
+				}
 			}
-		
-		
-		
+		}
+			
 		return false;
 		
 	}
