@@ -611,7 +611,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				}
 			}
 		}
-			
+		this.dbConnection.close();	
 		return false;
 		
 	}
