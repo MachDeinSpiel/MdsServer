@@ -145,10 +145,13 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * @param playerName String 
 	 * @param teamName String
 	 */
+	//TODO: Refactorn. zusammen packen in eine onNewConnection methode 
 	public boolean onNewConnection(WebSocket conn, String name, String teamName){
 		String playerName = name;
-		
-		WhiteboardEntry player = this.whiteboard.getAttribute(teamName, playerName);
+		System.out.println("team: " + teamName);
+		System.out.println("player: " + name);
+		System.out.println("Teams, " + teamName + "," + playerName);
+		WhiteboardEntry player = this.whiteboard.getAttribute("Teams", teamName, playerName);
 		
 		if (player == null) {
 
@@ -168,6 +171,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 			this.clients.put(teamName + playerName, conn);
 			
 			List<String> keys = new Vector<String>();
+			keys.add("Teams");
 			keys.add(teamName);
 			keys.add(playerName);
 
