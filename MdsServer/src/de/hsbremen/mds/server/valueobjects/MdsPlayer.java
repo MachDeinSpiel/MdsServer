@@ -33,6 +33,10 @@ public class MdsPlayer {
 		json.put("id", this.id);
 		return json;
 	}
+	
+	public String toString() {
+		return this.name;
+	}
 
 
 	public int getId() {
