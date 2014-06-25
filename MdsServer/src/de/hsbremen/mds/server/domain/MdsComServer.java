@@ -43,6 +43,7 @@ import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 import de.hsbremen.mds.server.valueobjects.MdsGame;
+import de.hsbremen.mds.server.valueobjects.MdsPVPGame;
 import de.hsbremen.mds.server.valueobjects.MdsPlayer;
 import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
 
@@ -208,7 +209,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		int maxp = mess.getInt("maxplayers");
 		
 		
-		MdsPlayer p = new MdsPlayer(conn, playerName, 0, true);
+		MdsPlayer p = new MdsPlayer(conn, playerName, true);
 		
 		String surl = (String) this.getGameTemplateValue(gameTemplateId, "serverurl");
 		String curl = (String) this.getGameTemplateValue(gameTemplateId, "clienturl");
@@ -225,11 +226,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		if (numberOfTeams >= 2 && isTeamGame) {
 			g = new MdsTeamGame(gameID, gameTemplateId, maxp, numberOfTeams);
-			g.setTeamGame(true);
 			((MdsTeamGame) g).createTeam(teamName);
 			((MdsTeamGame) g).putPlayerIntoTeam(p, teamName);
 		} else {
-			g = new MdsGame(gameID, gameTemplateId, maxp);
+			g = new MdsPVPGame(gameID, gameTemplateId, maxp);
 			g.putPlayer(p);
 		}
 		
@@ -251,8 +251,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		String name = mess.getString("name");
 		if (this.games.containsKey(gameID)) {
 			MdsGame g = this.games.get(gameID);
-			if (!g.isRunning() && (g.getMaxPlayers() > g.getActivePlayers() )) {
-				MdsPlayer p = new MdsPlayer(conn, name, g.getPlayerID(), false);
+			if (!g.isRunning() && (g.getMaxPlayers() > g.getPlayerCount() )) {
+				MdsPlayer p = new MdsPlayer(conn, name, false);
 				g.putPlayer(p);
 				this.playingClients.put(conn, gameID);
 				this.loggedInClients.remove(conn);
@@ -468,6 +468,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 						return;
 					}
 					
+					if (action.equals("changeteam")) {
+						if (g instanceof MdsTeamGame) {
+							MdsPlayer p = g.getPlayer(conn);
+							((MdsTeamGame) g).changeTeam(p, mes.getString("team"));
+						}
+						return;
+					}
+					
 					if (action.equals("kick")) {
 						WebSocket kicked = g.kickPlayer(conn, mes);
 						if (kicked != null) {
@@ -481,12 +489,13 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					
 					if (action.equals("leave")) {
 						g.exitPlayer(conn);
-						this.movePlayerToLobby(conn);
+						
 						
 						if(!this.playingClients.containsValue(gameID)) {
 							this.games.remove(gameID);
 						}
 						
+						this.movePlayerToLobby(conn);
 						this.notifyLobby();
 						g.notifyLobby();
 						return;

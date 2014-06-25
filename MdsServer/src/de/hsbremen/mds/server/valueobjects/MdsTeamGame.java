@@ -1,10 +1,18 @@
 package de.hsbremen.mds.server.valueobjects;
 
+import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.java_websocket.WebSocket;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import de.hsbremen.mds.server.domain.MdsComServer;
+import de.hsbremen.mds.server.domain.MdsServerInterpreter;
 
 
 public class MdsTeamGame extends MdsGame {
@@ -16,6 +24,7 @@ public class MdsTeamGame extends MdsGame {
 	
 	public MdsTeamGame(int gameID,  int templateID, int maxp, int teams) {
 		super(gameID,  templateID, maxp);
+		this.isTeamGame = true;
 		this.teams = teams;
 		this.maxTeamplayer = maxp / 2;
 		this.theTeams = new Vector<MdsTeam>();
@@ -43,7 +52,23 @@ public class MdsTeamGame extends MdsGame {
 		
 		if (theTeam != null) {
 			theTeam.addPlayer(p);
-			this.playerID++;
+			return true;
+		} else {
+			return false;
+		}
+		
+	
+	}
+	
+	public boolean changeTeam(MdsPlayer p, String teamName) {
+		
+		this.removePlayer(p);
+		
+		MdsTeam theTeam = this.getTeamByName(teamName);
+		
+		if (theTeam != null) {
+			theTeam.addPlayer(p);
+			this.notifyLobby();
 			return true;
 		} else {
 			return false;
@@ -61,11 +86,12 @@ public class MdsTeamGame extends MdsGame {
 		return null;
 	}
 
+
 	public void removePlayer(MdsPlayer p) {
 		for (MdsTeam t : this.theTeams) {
 			List<MdsPlayer> teamPlayers = t.getAllPlayers();
 			if (teamPlayers.contains(p)) {
-				teamPlayers.remove(p);
+				t.removePlayer(p);
 				return;
 			}
 		}
@@ -93,7 +119,7 @@ public class MdsTeamGame extends MdsGame {
 	}
 	
 	@Override
-	public JSONArray getAllPlayers() {
+	public JSONArray getAllPlayersInJSON() {
 		JSONArray teams = new JSONArray();
 		
 		// Fuer jedes Team des Spiels
@@ -115,6 +141,175 @@ public class MdsTeamGame extends MdsGame {
 		
 		// Team Array zurueckgeben
 		return teams;
+	}
+
+	@Override
+	public boolean startGame(WebSocket conn, MdsComServer mdsComServer,	File file) {
+		MdsPlayer p = this.getPlayer(conn);
+		Map<MdsPlayer, String> allPlayers = this.getPlayersInTeams();
+		if (p.isInitinal()) {
+			try {
+				this.interpreter = new MdsServerInterpreter(mdsComServer, file);
+				for (Entry<MdsPlayer, String> pl : allPlayers.entrySet()) {
+					MdsPlayer ply = pl.getKey();
+					this.interpreter.onNewConnection(ply.getWS(), ply.getName(), pl.getValue());
+				}
+				this.setRunning(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private String getTeamName(MdsPlayer p) {
+		for (MdsTeam t : this.theTeams) {
+			if (t.isPlayerOfTeam(p)) {
+				return t.getName();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void putPlayer(MdsPlayer p) {
+		int playerCount = Integer.MAX_VALUE;
+		MdsTeam smallestTeam = null;
+		for (MdsTeam t : this.theTeams) {
+			int teamPlayerCount = t.getPlayerCount();
+			if (teamPlayerCount < playerCount) {
+				playerCount = teamPlayerCount;
+				smallestTeam = t;
+			}	
+		}
+		if (smallestTeam != null) {
+			smallestTeam.addPlayer(p);
+		}
+	}
+
+	@Override
+	public void removePlayer(WebSocket conn) {
+		for (MdsTeam t : this.theTeams) {
+			if (t.isPlayerOfTeam(conn)) {
+				t.removePlayer(conn);
+			}
+		}
+		
+	}
+
+	@Override
+	public List<MdsPlayer> getAllPlayers() {
+		List<MdsPlayer> allPlayers = new Vector<MdsPlayer>();
+		for (MdsTeam t : this.theTeams) {
+			allPlayers.addAll(t.getAllPlayers());
+		}
+		return allPlayers;
+	}
+	
+	private Map<MdsPlayer, String> getPlayersInTeams() {
+		Map<MdsPlayer, String> playersInTeams = new HashMap<MdsPlayer, String>();
+		for (MdsTeam t : this.theTeams) {
+			for (MdsPlayer p : t.getAllPlayers()) {
+				playersInTeams.put(p, t.getName());
+			}
+		}
+		return playersInTeams;
+	}
+
+
+	@Override
+	public MdsPlayer getPlayer(String name) {
+		for (MdsTeam t : this.theTeams) {
+			return t.getPlayer(name);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public MdsPlayer getPlayer(WebSocket conn) {
+		for (MdsTeam t : this.theTeams) {
+			return t.getPlayer(conn);
+		}
+		return null;
+	}
+
+	@Override
+	public WebSocket kickPlayer(WebSocket conn, JSONObject mess) {
+		if (this.getPlayer(conn).isInitinal()){
+			String kick = (String) mess.get("player");
+			MdsPlayer p = this.getPlayer(kick);
+			this.removePlayer(p);
+			return p.getWS();
+		}
+		return null;
+	}
+
+	@Override
+	public JSONObject toJSON() {
+		JSONObject game = new JSONObject();
+		game.put("activeplayers", this.getPlayerCount());
+		game.put("maxplayers", this.maxPlayers);
+		game.put("id", this.gameID);
+		game.put("name", this.name);
+		game.put("author", this.author);
+		game.put("version", this.version);
+		game.put("clienturl", this.curl);
+		game.put("serverurl", this.surl);
+		game.put("isteamgame", this.isTeamGame);
+		game.put("teams", this.teams);
+		
+		String playernames = "";
+		List<MdsPlayer> allPlayers = this.getAllPlayers();
+		if (allPlayers.size() > 0) {
+			playernames = allPlayers.get(0).toString();
+			
+			for (int i = 1; i < allPlayers.size(); i++) {
+				playernames = playernames + ", " + allPlayers.get(i).toString();
+			}
+		}
+		System.out.println(playernames);
+		
+		game.put("players", playernames);
+		return game;
+	}
+
+
+	@Override
+	public int getPlayerCount() {
+		return this.getAllPlayers().size();
+	}
+
+	@Override
+	public void exitPlayer(WebSocket conn) {
+		MdsPlayer p = this.getPlayer(conn);
+	
+		if (p != null) {
+			if (p.isInitinal()) {
+				this.removePlayer(p);
+				for (MdsPlayer pl : this.getAllPlayers()) {
+					if (!pl.isInitinal()) {
+						pl.setInitinal(true);
+						break;
+					}
+				}
+			} else {
+				this.removePlayer(p);
+			}
+		}
+		
+	}
+
+	@Override
+	public List<WebSocket> terminate() {
+		Vector<WebSocket> gameLobbyPlayers = new Vector<WebSocket>();
+		for(MdsPlayer pl : this.getAllPlayers()) {
+			gameLobbyPlayers.add(pl.getWS());
+		}
+		return gameLobbyPlayers;
 	}
 
 }
