@@ -3,8 +3,8 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MdsCommon"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/MdsCommon/libs/java_websocket.jar"/>
-	<classpathentry kind="lib" path="/MdsCommon/libs/json-simple-1.1.1.jar"/>
-	<classpathentry kind="lib" path="/MdsCommon/libs/mysql-connector-java-5.1.31-bin.jar"/>
+	<classpathentry exported="true" kind="lib" path="/MdsCommon/libs/java_websocket.jar"/>
+	<classpathentry exported="true" kind="lib" path="/MdsCommon/libs/json-simple-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="/MdsCommon/libs/mysql-connector-java-5.1.31-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

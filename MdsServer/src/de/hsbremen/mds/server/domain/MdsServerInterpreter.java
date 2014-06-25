@@ -77,7 +77,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 	/**
 	 * 
 	 * 
-	 * d
+	 * 
 	 * @param conn WebSocket
 	 * @param wb   Whiteboard
 	 * @param keys List<String> 
@@ -137,6 +137,48 @@ public class MdsServerInterpreter implements ComServerInterface {
 		
 		return false;
 	}	
+	
+	/**
+	 * 
+	 * 
+	 * @param conn WebSocket
+	 * @param playerName String 
+	 * @param teamName String
+	 */
+	public boolean onNewConnection(WebSocket conn, String name, String teamName){
+		String playerName = name;
+		
+		WhiteboardEntry player = this.whiteboard.getAttribute(teamName, playerName);
+		
+		if (player == null) {
+
+			try {
+				player = new WhiteboardEntry(playerName, "all");
+				Whiteboard playerAtt = new Whiteboard();
+				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
+					playerAtt.put(entry.getKey(), 
+							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
+				}
+				player = new WhiteboardEntry(playerAtt, "all");
+
+			} catch (InvalidWhiteboardEntryException e) {
+				e.printStackTrace();
+			}
+		
+			this.clients.put(teamName + playerName, conn);
+			
+			List<String> keys = new Vector<String>();
+			keys.add(teamName);
+			keys.add(playerName);
+
+			this.onWhiteboardUpdate(conn, keys, player);
+			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+			
+			return true;
+		}	
+		
+		return false;
+	}
 	
 	/**
 	 * 
