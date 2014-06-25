@@ -13,26 +13,25 @@ import de.hsbremen.mds.server.domain.MdsServerInterpreter;
 
 public class MdsGame {
 	
-	private List<MdsPlayer> players;
-	private MdsServerInterpreter interpreter;
-	private int templateID;
-	private int maxPlayers;
-	private MdsComServer wsServ;
-	private int playerID;
-	private String name;
-	private String author;
-	private double version;
-	private String curl;
-	private String surl;
-	private boolean isRunning = false;
-	private int gameID;
+	protected List<MdsPlayer> players;
+	protected MdsServerInterpreter interpreter;
+	protected int templateID;
+	protected int maxPlayers;
+	protected int playerID;
+	protected String name;
+	protected String author;
+	protected double version;
+	protected String curl;
+	protected String surl;
+	protected boolean isRunning = false;
+	protected boolean isTeamGame = false;
+	protected int gameID;
 	
-	public MdsGame(MdsComServer wsServ, int gameID,  int templateID, int maxp) {
+	public MdsGame(int gameID,  int templateID, int maxp) {
 		this.players = new Vector<MdsPlayer>();
 		this.gameID = gameID;
 		this.templateID = templateID;
 		this.maxPlayers = maxp;
-		this.wsServ = wsServ;
 		this.playerID = 0;
 	}
 	
@@ -113,7 +112,7 @@ public class MdsGame {
 		for (MdsPlayer p : this.players) {
 			allPlayers.put(p.toJSON());
 		}
-		System.out.println(allPlayers.toString());
+//		System.out.println(allPlayers.toString());
 		return allPlayers;
 	}
 
@@ -194,6 +193,14 @@ public class MdsGame {
 		return this.isRunning ;
 	}
 
+	public boolean isTeamGame() {
+		return isTeamGame;
+	}
+
+	public void setTeamGame(boolean isTeamGame) {
+		this.isTeamGame = isTeamGame;
+	}
+
 	public void exitPlayer(WebSocket conn) {
 		MdsPlayer p = null;
 		for(MdsPlayer pl : this.players) {
@@ -242,9 +249,18 @@ public class MdsGame {
 		JSONObject response = new JSONObject();
 		response.put("mode", "gamelobby");
 		response.put("action", "players");
+		response.put("isteamgame", this.isTeamGame);
 		JSONArray players = this.getAllPlayers();
 		response.put("players", players);
 		return response;
+	}
+
+	public List<WebSocket> terminate() {
+		Vector<WebSocket> gameLobbyPlayers = new Vector<WebSocket>();
+		for(MdsPlayer pl : this.players) {
+			gameLobbyPlayers.add(pl.getWS());
+		}
+		return gameLobbyPlayers;
 	}
 		
 

@@ -1,75 +1,11 @@
 package de.hsbremen.mds.server.domain;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.java_websocket.WebSocket;
 
 /**
  * 
  */
 public class MdsServer {
-	
-	private static File jsonEinlesen() {
-
-		InputStream is = null;
-		
-		try {
-			is = new URL("https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/config.json").openStream();
-		} catch (MalformedURLException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-
-		// Temporäre Datei anlegen
-		File json = null;
-		try {
-			json = File.createTempFile("App", ".json");
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-
-
-		try {
-			// Inputstream zum einlesen der Json
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-			// Json wird zeilenweise eingelesn uns in das File json geschrieben
-			FileWriter writer = new FileWriter(json, true);
-
-			String t = "";
-
-			while ((t = br.readLine()) != null) {
-				//System.out.println(t);
-				writer.write(t);
-			}
-
-			writer.flush();
-			writer.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// Ueberprüfung, ob es geklappt hat
-		if (json.exists()) {
-			System.out.println("Reading JSON successful: " + json.length());			
-		} else {
-			System.out.println("Reading JSON failed.");
-		}
-		
-		return json;
-
-	}
 	
 	public static void main(String[] args) throws Exception {
 			  
@@ -82,9 +18,7 @@ public class MdsServer {
 			
 		}
 		
-		File file = jsonEinlesen();
-			
-		MdsComServer wsServer = new MdsComServer(port, file);
+		MdsComServer wsServer = new MdsComServer(port, "https://raw.githubusercontent.com/MachDeinSpiel/MdsJsons/master/config.json");
 
 		wsServer.start();
 		
