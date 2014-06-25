@@ -8,17 +8,13 @@ import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-
 import org.java_websocket.WebSocket;
-
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.InvalidWhiteboardEntryException;
 import de.hsbremen.mds.common.whiteboard.Whiteboard;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
 import de.hsbremen.mds.server.parser.ParserServerNew;
-
-
 
 public class MdsServerInterpreter implements ComServerInterface {
 	private Whiteboard whiteboard         = new Whiteboard();
@@ -28,57 +24,63 @@ public class MdsServerInterpreter implements ComServerInterface {
 	private MdsComServer comServer;
 	
 	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
-		this.comServer = mdsComServer;
+		this.comServer  = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
 		this.savePlayerTemplate();
 	}
 
 	@Override
-	/**
-	 * 
-	 */
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
 		if(entry.getValue().equals("delete")){
 			this.removeWhiteboard(conn, keys);
-			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-				this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
-			}			
+			this.sendUpdate(conn, keys, entry);
+//			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
+//				if(!mapEntry.getValue().equals(conn)){
+//					this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
+//				}
+//			}			
 		}else{
 			// Lokales WB aktualisieren
 			this.onWhiteboardUpdate(keys, entry);
-			try {
-				makeWhiteboardList((Whiteboard) entry.getValue(), keys);
-			} catch (InvalidWhiteboardEntryException e) {
-				e.printStackTrace();
-			}
-			//TODO: der path ist falsch... 
-			// Allen anderen Clients das Update schicken
-			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-				if (!mapEntry.getValue().equals(conn)) {
-					for(Iterator<WhiteboardUpdateObject> iter = this.whiteboardUpdateObjects.iterator(); iter.hasNext();){
-						WhiteboardUpdateObject a = iter.next();
-						WhiteboardEntry b = a.getValue();
-						List<String> k = a.getKeys();
-						this.comServer.sendUpdate(mapEntry.getValue(), k, b);
+			if(entry.getValue() instanceof Whiteboard){
+				try {
+					makeWhiteboardList((Whiteboard) entry.getValue(), keys);
+					// Allen anderen Clients das Update schicken
+					for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
+						if (!mapEntry.getValue().equals(conn)) {
+							for(Iterator<WhiteboardUpdateObject> iter = this.whiteboardUpdateObjects.iterator(); iter.hasNext();){
+								WhiteboardUpdateObject wbupdateObj = iter.next();
+								WhiteboardEntry wbentry = wbupdateObj.getValue();
+								List<String> path = wbupdateObj.getKeys();
+								this.comServer.sendUpdate(mapEntry.getValue(), path, wbentry);
+							}
+						}	
 					}
-				}	
+					this.whiteboardUpdateObjects.clear();
+				} catch (InvalidWhiteboardEntryException e) {
+					e.printStackTrace();
+				}
+			}else{
+				//Verschickt nur ein WhiteboardEntry. In dem z.b die Positionen gaendert wurden.
+				try {
+					whiteboard.setAttributeValue(entry.getValue(), this.getStringArrayPath(keys));
+					this.sendUpdate(conn, keys, entry);
+				} catch (InvalidWhiteboardEntryException e) {
+					e.printStackTrace();
+				}
 			}
-			this.whiteboardUpdateObjects.clear();
 		}
-		
-
-
 	}
 
 	
 	/**
-	 * Client kompletten WB senden
 	 * 
 	 * 
-	 * @param conn - der Client
-	 * @param wb - das WB
-	 * @param keys - Key zum WB
+	 * d
+	 * @param conn WebSocket
+	 * @param wb   Whiteboard
+	 * @param keys List<String> 
 	 */
 	public void onFullWhiteboardUpdate(WebSocket conn, Whiteboard wb, List<String> keys) {
 		try {
@@ -95,7 +97,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * 
 	 * 
 	 * @param wb Whiteboard
-	 * @param keys Key List
+	 * @param keys List<String>
 	 * @throws InvalidWhiteboardEntryException
 	 */
 
@@ -135,6 +137,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 		
 		return false;
 	}	
+	
 	/**
 	 * 
 	 * 
@@ -165,31 +168,48 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * Test Methoden
 	 * 
 	 */
-	public void printWhiteboard(String keyPath, Whiteboard wb){
-		List<String> a = new Vector<String>();
-		a.add("null");
-		a.add("Players");
-		a.add("0");
-		for(String key : wb.keySet()){
-			if(!(wb.getAttribute(key).value instanceof String)){
-				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
-			}else{
-				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
-			}
-		}
-//		System.out.println("DELEEEEETTTEEEEEEEEEEEEEEEEEEE");
-		this.removeWhiteboard(clients.get("1"), a);
-		printWhiteboard(keyPath, wb);
-	}
+//	public void printWhiteboard(String keyPath, Whiteboard wb){
+//		List<String> a = new Vector<String>();
+//		a.add("null");
+//		a.add("Players");
+//		a.add("0");
+//		for(String key : wb.keySet()){
+//			if(!(wb.getAttribute(key).value instanceof String)){
+//				printWhiteboard(keyPath+","+key, (Whiteboard) wb.getAttribute(key).value);
+//			}else{
+//				System.out.println(keyPath+","+key+ ":"+ wb.getAttribute(key).value.toString());
+//			}
+//		}
+////		System.out.println("DELEEEEETTTEEEEEEEEEEEEEEEEEEE");
+//		this.removeWhiteboard(clients.get("1"), a);
+//		printWhiteboard(keyPath, wb);
+//	}
 
 
 	
 	/**
+	 * ##########################################################################################################################################
 	 * 
 	 * Private Methoden
 	 * 
+	 * ##########################################################################################################################################
 	 */
 
+	/**
+	 * Sendet Updates an alle Clients, ausser an den In­i­ti­a­tor des Updates.
+	 * 
+	 * @param conn Websocket
+	 * @param keys List<String>
+	 * @param entry WhiteboardEntry
+	 */
+	private void sendUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry){
+		for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
+			if (!mapEntry.getValue().equals(conn)) {
+				this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
+			}	
+		}
+	}
+	
 	/**
 	 * Player Templat speichern und das Template aus den globalen Whiteboard loeschen.
 	 */
@@ -201,8 +221,8 @@ public class MdsServerInterpreter implements ComServerInterface {
 	/**
 	 * Locales Whiteboard Update
 	 * 
-	 * @param keys
-	 * @param value
+	 * @param keys String<List>
+	 * @param value WhiteboardEntry
 	 */
 	private void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
 		String [] key = this.getStringArrayPath(keys);
@@ -259,18 +279,6 @@ public class MdsServerInterpreter implements ComServerInterface {
 		String[] key = new String[keys.size()];
 		return key = keys.toArray(key);
 	}
-	
-	/**
-	 * 
-	 * Methoden werden nicht benutzt 
-	 * 
-	 */
-
-	@Override
-	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	public void attachMonitor(String name, WebSocket conn) {
 		this.clients.put(name, conn);
@@ -282,4 +290,19 @@ public class MdsServerInterpreter implements ComServerInterface {
 		this.clients.remove(conn);
 		
 	}	
+	
+	/**
+	 * #########################################################################################################################################
+	 * 
+	 * Methoden werden nicht benutzt 
+	 * 
+	 * #########################################################################################################################################
+	 */
+
+	@Override
+	public void onFullWhiteboardUpdate(WebSocket conn, List<WhiteboardUpdateObject> wb) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
