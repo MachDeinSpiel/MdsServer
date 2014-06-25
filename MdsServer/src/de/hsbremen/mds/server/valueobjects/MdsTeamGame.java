@@ -46,18 +46,16 @@ public class MdsTeamGame extends MdsGame {
 		return false;
 	}
 	
-	public boolean putPlayerIntoTeam(MdsPlayer p, String teamName) {
+	public void putPlayerIntoTeam(MdsPlayer p, String teamName) {
 					
 		MdsTeam theTeam = this.getTeamByName(teamName);
 		
 		if (theTeam != null) {
 			theTeam.addPlayer(p);
-			return true;
 		} else {
-			return false;
+			this.createTeam(teamName);
+			this.putPlayerIntoTeam(p, teamName);
 		}
-		
-	
 	}
 	
 	public boolean changeTeam(MdsPlayer p, String teamName) {
@@ -223,7 +221,10 @@ public class MdsTeamGame extends MdsGame {
 	@Override
 	public MdsPlayer getPlayer(String name) {
 		for (MdsTeam t : this.theTeams) {
-			return t.getPlayer(name);
+			MdsPlayer p = t.getPlayer(name);
+			if (p != null) {
+				return p;
+			}
 		}
 		
 		return null;
@@ -247,7 +248,9 @@ public class MdsTeamGame extends MdsGame {
 			String kick = (String) mess.get("player");
 			MdsPlayer p = this.getPlayer(kick);
 			this.removePlayer(p);
-			return p.getWS();
+			if (p != null) {
+				return p.getWS();
+			}
 		}
 		return null;
 	}

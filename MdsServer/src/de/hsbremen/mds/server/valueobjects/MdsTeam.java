@@ -82,7 +82,7 @@ public class MdsTeam {
 	
 	public boolean isPlayerOfTeam(WebSocket ws) {
 		for (MdsPlayer p : this.teamPlayer) {
-			if (p.getWS().equals(ws)) {
+			if (p.getWS() == ws) {
 				return true;
 			}
 		}

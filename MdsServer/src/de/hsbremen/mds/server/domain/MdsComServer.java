@@ -249,11 +249,17 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private synchronized void joinGame(WebSocket conn, JSONObject mess) {
 		int gameID = mess.getInt("id");
 		String name = mess.getString("name");
+		boolean isTeamJoinRequest = mess.has("teamname");
 		if (this.games.containsKey(gameID)) {
 			MdsGame g = this.games.get(gameID);
 			if (!g.isRunning() && (g.getMaxPlayers() > g.getPlayerCount() )) {
 				MdsPlayer p = new MdsPlayer(conn, name, false);
-				g.putPlayer(p);
+				if (g instanceof MdsTeamGame && isTeamJoinRequest) {
+					String teamname = mess.getString("teamname");
+					((MdsTeamGame)g).putPlayerIntoTeam(p, teamname);
+				} else {
+					g.putPlayer(p);
+				}
 				this.playingClients.put(conn, gameID);
 				this.loggedInClients.remove(conn);
 				this.notifyLobby();
