@@ -91,7 +91,6 @@ public class MdsPVPGame extends MdsGame{
 		for (MdsPlayer p : this.players) {
 			allPlayers.put(p.toJSON());
 		}
-//		System.out.println(allPlayers.toString());
 		return allPlayers;
 	}
 
@@ -134,7 +133,6 @@ public class MdsPVPGame extends MdsGame{
 				playernames = playernames + ", " + this.players.get(i).toString();
 			}
 		}
-		System.out.println(playernames);
 		
 		game.put("players", playernames);
 		return game;
