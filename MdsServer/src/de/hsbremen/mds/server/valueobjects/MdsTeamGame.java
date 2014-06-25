@@ -34,7 +34,7 @@ public class MdsTeamGame extends MdsGame {
 		
 		if (this.teams > this.theTeams.size()) {
 			
-			if (this.checkTeamName(teamName)) {
+			if (!this.checkTeamName(teamName)) {
 				teamName = teamName + "1";
 			}
 			
@@ -232,7 +232,11 @@ public class MdsTeamGame extends MdsGame {
 	@Override
 	public MdsPlayer getPlayer(WebSocket conn) {
 		for (MdsTeam t : this.theTeams) {
-			return t.getPlayer(conn);
+			MdsPlayer p = t.getPlayer(conn);
+			
+			if (p != null) {
+				return p;
+			}
 		}
 		return null;
 	}

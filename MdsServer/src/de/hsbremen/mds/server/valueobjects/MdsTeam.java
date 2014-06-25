@@ -105,8 +105,10 @@ public class MdsTeam {
 
 	public MdsPlayer getPlayer(WebSocket conn) {
 		for (MdsPlayer p : this.teamPlayer) {
-			if (p.getWS().equals(conn)) {
+			System.out.println("# Player: " + p.getWS().toString() + " vergl: " + conn.toString() );
+			if (p.getWS() == conn) {
 				return p;
+				
 			}
 		}
 		return null;
