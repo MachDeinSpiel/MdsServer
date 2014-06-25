@@ -52,7 +52,7 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 06.25 (master Branch)";
+	private static final String version = "MdsComServer 06.25 (devTeam Branch)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -196,14 +196,18 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 	
-	private synchronized void createGame(WebSocket conn, JSONObject mess) {
+	private synchronized boolean createGame(WebSocket conn, JSONObject mess) {
+		
 		int gameTemplateId = mess.getInt("id");
 		boolean isTeamGame = (Boolean) this.getGameTemplateValue(gameTemplateId, "isteamgame");
 		String playerName = mess.getString("name");
-		String teamName = "";
-		
+		String teamName = null;
+		JSONArray teamNames = null;
 		if (isTeamGame) {
-			teamName = mess.getString("teamname");
+			if (mess.has("teamname")) {
+				teamName = mess.getString("teamname");
+			}
+			teamNames = (JSONArray) this.getGameTemplateValue(gameTemplateId, "teamnames");
 		}
 		
 		int maxp = mess.getInt("maxplayers");
@@ -226,8 +230,16 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		if (numberOfTeams >= 2 && isTeamGame) {
 			g = new MdsTeamGame(gameID, gameTemplateId, maxp, numberOfTeams);
-			((MdsTeamGame) g).createTeam(teamName);
-			((MdsTeamGame) g).putPlayerIntoTeam(p, teamName);
+			((MdsTeamGame) g).createTeams(teamNames);
+			if (teamName != null) {
+				boolean success = ((MdsTeamGame) g).putPlayerIntoTeam(p, teamName);
+				if (!success) {
+					this.sendError(conn, "You can't join Team '" + teamName + "'");
+					return false;
+				}
+			} else {
+				g.putPlayer(p);
+			}
 		} else {
 			g = new MdsPVPGame(gameID, gameTemplateId, maxp);
 			g.putPlayer(p);
@@ -243,10 +255,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.games.put(gameID, g);
 		this.notifyLobby();
 		g.notifyLobby();
+		return true;
 		
 	}
 	
-	private synchronized void joinGame(WebSocket conn, JSONObject mess) {
+	private synchronized boolean joinGame(WebSocket conn, JSONObject mess) {
 		int gameID = mess.getInt("id");
 		String name = mess.getString("name");
 		boolean isTeamJoinRequest = mess.has("teamname");
@@ -256,7 +269,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				MdsPlayer p = new MdsPlayer(conn, name, false);
 				if (g instanceof MdsTeamGame && isTeamJoinRequest) {
 					String teamname = mess.getString("teamname");
-					((MdsTeamGame)g).putPlayerIntoTeam(p, teamname);
+					boolean success = ((MdsTeamGame)g).putPlayerIntoTeam(p, teamname);
+					if (!success) {
+						this.sendError(conn, "Team '" + teamname +  "' doesn't exist");
+						return false;
+					}
 				} else {
 					g.putPlayer(p);
 				}
@@ -265,12 +282,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				this.notifyLobby();
 				g.notifyLobby();
 			} else {
-				// TODO: send error game running
+				this.sendError(conn, "This game is already running.");
+				return false;
 			}
 		} else {
-			// TODO: send error no game with id
+			this.sendError(conn, "There is no game with ID " + gameID);
+			return false;
 		}
-		
+		return true;
 			
 	}
 	

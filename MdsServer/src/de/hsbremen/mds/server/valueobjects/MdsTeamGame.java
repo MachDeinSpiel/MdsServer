@@ -46,16 +46,15 @@ public class MdsTeamGame extends MdsGame {
 		return false;
 	}
 	
-	public void putPlayerIntoTeam(MdsPlayer p, String teamName) {
+	public boolean putPlayerIntoTeam(MdsPlayer p, String teamName) {
 					
 		MdsTeam theTeam = this.getTeamByName(teamName);
 		
 		if (theTeam != null) {
 			theTeam.addPlayer(p);
-		} else {
-			this.createTeam(teamName);
-			this.putPlayerIntoTeam(p, teamName);
+			return true;
 		}
+		return false;
 	}
 	
 	public boolean changeTeam(MdsPlayer p, String teamName) {
@@ -187,6 +186,7 @@ public class MdsTeamGame extends MdsGame {
 			smallestTeam.addPlayer(p);
 		}
 	}
+	
 
 	@Override
 	public void removePlayer(WebSocket conn) {
@@ -251,6 +251,8 @@ public class MdsTeamGame extends MdsGame {
 			if (p != null) {
 				return p.getWS();
 			}
+		} else {
+			// TODO: Player is cheating
 		}
 		return null;
 	}
@@ -278,7 +280,6 @@ public class MdsTeamGame extends MdsGame {
 				playernames = playernames + ", " + allPlayers.get(i).toString();
 			}
 		}
-		System.out.println(playernames);
 		
 		game.put("players", playernames);
 		return game;
@@ -317,6 +318,12 @@ public class MdsTeamGame extends MdsGame {
 			gameLobbyPlayers.add(pl.getWS());
 		}
 		return gameLobbyPlayers;
+	}
+
+	public void createTeams(JSONArray teamNames) {
+		for (int i = 0; i < teamNames.length();i++) {
+			this.createTeam(teamNames.getString(i));
+		}
 	}
 
 }
