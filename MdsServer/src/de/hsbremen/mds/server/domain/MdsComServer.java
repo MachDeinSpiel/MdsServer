@@ -210,7 +210,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			teamNames = (JSONArray) this.getGameTemplateValue(gameTemplateId, "teamnames");
 		}
 		
-		int maxp = mess.getInt("maxplayers");
+		//int maxp = mess.getInt("maxplayers");
 		
 		
 		MdsPlayer p = new MdsPlayer(conn, playerName, true);
@@ -220,6 +220,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		String name = (String) this.getGameTemplateValue(gameTemplateId, "name");
 		String author = (String) this.getGameTemplateValue(gameTemplateId, "author");
 		double version = (Double) this.getGameTemplateValue(gameTemplateId, "version");
+		int maxp = (Integer) this.getGameTemplateValue(gameTemplateId, "maxplayers");
 		int numberOfTeams = (Integer) this.getGameTemplateValue(gameTemplateId, "teams");
 		int gameID = 0;
 		while(this.games.containsKey(gameID)) {
@@ -371,7 +372,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			g.notifyLobby();
 			
 			this.playingClients.remove(conn);
-			if(!this.playingClients.containsValue(gameID)) {
+			
+			int activePlayers = g.getPlayerCount();
+			
+			if(activePlayers < 1) {
 				this.games.remove(gameID);
 			}
 			
@@ -504,9 +508,15 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					if (action.equals("kick")) {
 						WebSocket kicked = g.kickPlayer(conn, mes);
 						if (kicked != null) {
+							
+							int activePlayers = g.getPlayerCount();
+							
+							if(activePlayers < 1) {
+								this.games.remove(gameID);
+							}							
 							this.notifyLobby();
 							g.notifyLobby();
-							this.movePlayerToLobby(kicked);
+							this.movePlayerToLobby(kicked);							
 							return;
 						}
 						
@@ -514,9 +524,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					
 					if (action.equals("leave")) {
 						g.exitPlayer(conn);
+						int activePlayers = g.getPlayerCount();
 						
-						
-						if(!this.playingClients.containsValue(gameID)) {
+						if(activePlayers < 1) {
 							this.games.remove(gameID);
 						}
 						
