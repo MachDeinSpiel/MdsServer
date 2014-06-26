@@ -162,7 +162,7 @@ public class MdsTeamGame extends MdsGame {
 		}
 	}
 
-	private String getTeamName(MdsPlayer p) {
+	public String getTeamName(MdsPlayer p) {
 		for (MdsTeam t : this.theTeams) {
 			if (t.isPlayerOfTeam(p)) {
 				return t.getName();
