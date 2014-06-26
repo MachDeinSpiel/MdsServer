@@ -27,7 +27,7 @@ public class MdsPVPGame extends MdsGame{
 			try {
 				this.interpreter = new MdsServerInterpreter(mdsComServer, file);
 				for (MdsPlayer pl : this.players) {
-					this.interpreter.onNewConnection(pl.getWS(), pl.getName());
+					this.interpreter.onNewConnection(pl.getWS(), pl.getName(), null);
 				}
 				this.isRunning = true;
 			} catch (Exception e) {

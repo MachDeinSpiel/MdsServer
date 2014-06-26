@@ -80,7 +80,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		//System.out.println("Checking DB connection ... ");
 		
-		System.out.println("Session Token: " + this.sessionToken);
+		//System.out.println("Session Token: " + this.sessionToken);
 		
 		if (!this.isLoginActivated) {
 			System.err.println("## WARNING: USER-AUTHENTICATION DISABLED! ##");
@@ -647,7 +647,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 
 	@Override
-	public boolean onNewConnection(WebSocket conn, String name) {
+	public boolean onNewConnection(WebSocket conn, String name, String teamName) {
 		
 		//return mdsServerInterpreter.onNewConnection(conn, handshake);
 		return false;
