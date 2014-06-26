@@ -93,85 +93,85 @@ public class MdsServerInterpreter implements ComServerInterface {
 		whiteboardUpdateObjects.clear();	
 	}
 
-	@Override
-	public boolean onNewConnection(WebSocket conn, String name) {
-		System.out.println("Neuer Player angemeldet");
-		String playerName = name;
-		
-		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
-		
-		if (player == null) {
-
-			try {
-				player = new WhiteboardEntry(playerName, "all");
-				Whiteboard playerAtt = new Whiteboard();
-				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
-					playerAtt.put(entry.getKey(), 
-							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
-				}
-				player = new WhiteboardEntry(playerAtt, "all");
-
-			} catch (InvalidWhiteboardEntryException e) {
-				e.printStackTrace();
-			}
-		
-			this.clients.put("Players," + playerName, conn);
-			
-			List<String> keys = new Vector<String>();
-			keys.add("Players");
-			keys.add(playerName);
-
-			this.onWhiteboardUpdate(conn, keys, player);
-			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
-			
-			return true;
-		}	
-		
-		return false;
-	}	
-	
-	/**
-	 * 
-	 * 
-	 * @param conn WebSocket
-	 * @param playerName String 
-	 * @param teamName String
-	 */
-	//TODO: Refactorn. zusammen packen in eine onNewConnection methode 
-	public boolean onNewConnection(WebSocket conn, String name, String teamName){
-		System.out.println("Neuer Player fuer das Team: "+ teamName +" angemeldet");
-		String playerName = name;
-		WhiteboardEntry player = this.whiteboard.getAttribute("Teams", teamName, playerName);
-		
-		if (player == null) {
-			try {
-				player = new WhiteboardEntry(playerName, "all");
-				Whiteboard playerAtt = new Whiteboard();
-				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
-					playerAtt.put(entry.getKey(), 
-							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
-				}
-				player = new WhiteboardEntry(playerAtt, "all");
-
-			} catch (InvalidWhiteboardEntryException e) {
-				e.printStackTrace();
-			}
-		
-			this.clients.put(teamName + playerName, conn);
-			
-			List<String> keys = new Vector<String>();
-			keys.add("Teams");
-			keys.add(teamName);
-			keys.add(playerName);
-
-			this.onWhiteboardUpdate(conn, keys, player);
-			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
-			
-			return true;
-		}	
-		
-		return false;
-	}
+//	@Override
+//	public boolean onNewConnection(WebSocket conn, String name) {
+//		System.out.println("Neuer Player angemeldet");
+//		String playerName = name;
+//		
+//		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
+//		
+//		if (player == null) {
+//
+//			try {
+//				player = new WhiteboardEntry(playerName, "all");
+//				Whiteboard playerAtt = new Whiteboard();
+//				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
+//					playerAtt.put(entry.getKey(), 
+//							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
+//				}
+//				player = new WhiteboardEntry(playerAtt, "all");
+//
+//			} catch (InvalidWhiteboardEntryException e) {
+//				e.printStackTrace();
+//			}
+//		
+//			this.clients.put("Players," + playerName, conn);
+//			
+//			List<String> keys = new Vector<String>();
+//			keys.add("Players");
+//			keys.add(playerName);
+//
+//			this.onWhiteboardUpdate(conn, keys, player);
+//			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+//			
+//			return true;
+//		}	
+//		
+//		return false;
+//	}	
+//	
+//	/**
+//	 * 
+//	 * 
+//	 * @param conn WebSocket
+//	 * @param playerName String 
+//	 * @param teamName String
+//	 */
+//	//TODO: Refactorn. zusammen packen in eine onNewConnection methode 
+//	public boolean onNewConnection(WebSocket conn, String name, String teamName){
+//		System.out.println("Neuer Player fuer das Team: "+ teamName +" angemeldet");
+//		String playerName = name;
+//		WhiteboardEntry player = this.whiteboard.getAttribute("Teams", teamName, playerName);
+//		
+//		if (player == null) {
+//			try {
+//				player = new WhiteboardEntry(playerName, "all");
+//				Whiteboard playerAtt = new Whiteboard();
+//				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
+//					playerAtt.put(entry.getKey(), 
+//							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
+//				}
+//				player = new WhiteboardEntry(playerAtt, "all");
+//
+//			} catch (InvalidWhiteboardEntryException e) {
+//				e.printStackTrace();
+//			}
+//		
+//			this.clients.put(teamName + playerName, conn);
+//			
+//			List<String> keys = new Vector<String>();
+//			keys.add("Teams");
+//			keys.add(teamName);
+//			keys.add(playerName);
+//
+//			this.onWhiteboardUpdate(conn, keys, player);
+//			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+//			
+//			return true;
+//		}	
+//		
+//		return false;
+//	}
 
 	
 	//##########################TEST#################################################
@@ -183,15 +183,17 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * @param playerName String 
 	 * @param teamName String
 	 */
-	public boolean testOnNewConnection(WebSocket conn, String name, String teamName){
-		System.out.println("Neuer Player fuer das Team: "+ teamName +" angemeldet");
+	public boolean onNewConnection(WebSocket conn, String name, String teamName){
+		
 		WhiteboardEntry player;
 		List<String> keys = new Vector<String>();
 		String playerName = name;
 		
 		if(teamName != null){
+			System.out.println("Neuer Player fuer das Team: "+ teamName +" angemeldet");
 			player = this.whiteboard.getAttribute("Teams", teamName, playerName);
 		}else{
+			System.out.println("Neuer Player angemeldet");
 			player = this.whiteboard.getAttribute("Players", playerName);
 		}
 		
