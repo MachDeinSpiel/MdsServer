@@ -11,5 +11,7 @@ Beispiel:
 ####Start Parameter
 ```mdsserver.jar <configuration URL to JSON file> [-debug | -debug -noauth]```
 
+Beim Start muss immer einer URL zu einer JSON-Konfigurationsdatei angegeben werden.  
+
 Mit dem Startparameter ```-debug``` werden Debugging-Informationen auf der Konsole ausgegeben.  
 Die Option ```-debug -noauth``` ermöglicht das Deaktivieren der Benutzer-Authentifizierung. Diese Option steht nur im Debug-Modus zur Verfügung.
