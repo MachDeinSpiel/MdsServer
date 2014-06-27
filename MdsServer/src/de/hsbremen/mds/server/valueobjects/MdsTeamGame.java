@@ -270,6 +270,7 @@ public class MdsTeamGame extends MdsGame {
 		game.put("serverurl", this.surl);
 		game.put("isteamgame", this.isTeamGame);
 		game.put("teams", this.teams);
+		game.put("apptheme", this.appTheme);
 		
 		String playernames = "";
 		List<MdsPlayer> allPlayers = this.getAllPlayers();

@@ -20,6 +20,7 @@ public abstract class MdsGame {
 	protected double version;
 	protected String curl;
 	protected String surl;
+	protected String appTheme;
 	protected boolean isRunning = false;
 	public void setRunning(boolean isRunning) {
 		this.isRunning = isRunning;
@@ -82,6 +83,14 @@ public abstract class MdsGame {
 
 	public String getServerURL() {
 		return this.surl;
+	}
+
+	public String getAppTheme() {
+		return appTheme;
+	}
+
+	public void setAppTheme(String appTheme) {
+		this.appTheme = appTheme;
 	}
 
 	public boolean isRunning() {

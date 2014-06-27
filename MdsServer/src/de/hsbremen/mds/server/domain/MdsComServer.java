@@ -52,15 +52,16 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 06.26 (devTeam Branch)";
+	private static final String version = "MdsComServer 06.27 (devTeam Branch)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
 	private Map<WebSocket, Integer> monitors;
 	private Map<WebSocket, Integer> playingClients;
 	private Map<Integer, MdsGame> games;
+	private Map<WebSocket, String> playerNames;
 	private Connection dbConnection;
-	private final boolean isLoginActivated = false;
+	private final boolean isLoginActivated = true;
 	private final String sessionToken = new SessionIdentifierGenerator().nextSessionId();
 		
 	
@@ -71,6 +72,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.monitors = new HashMap<WebSocket, Integer>();
 		this.games = new HashMap<Integer, MdsGame>();
+		this.playerNames = new HashMap<WebSocket, String>();
 		this.initGames(configURL);
 		this.testDbConnection();
 		
@@ -219,6 +221,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		String curl = (String) this.getGameTemplateValue(gameTemplateId, "clienturl");
 		String name = (String) this.getGameTemplateValue(gameTemplateId, "name");
 		String author = (String) this.getGameTemplateValue(gameTemplateId, "author");
+		String appTheme = (String) this.getGameTemplateValue(gameTemplateId, "apptheme");
 		double version = (Double) this.getGameTemplateValue(gameTemplateId, "version");
 		int maxp = (Integer) this.getGameTemplateValue(gameTemplateId, "maxplayers");
 		int numberOfTeams = (Integer) this.getGameTemplateValue(gameTemplateId, "teams");
@@ -251,6 +254,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		g.setVersion(version);
 		g.setClientURL(curl);
 		g.setServerURL(surl);
+		g.setAppTheme(appTheme);
 		this.playingClients.put(conn, gameID);
 		this.loggedInClients.remove(conn);
 		this.games.put(gameID, g);
@@ -352,11 +356,13 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		if (this.loggedInClients.contains(conn)) {
 			this.loggedInClients.remove(conn);
+			this.playerNames.remove(conn);
 		
 		}
 		
 		if (this.waitingClients.contains(conn)) {
 			this.waitingClients.remove(conn);
+			this.playerNames.remove(conn);
 		
 		}
 		
@@ -372,6 +378,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			g.notifyLobby();
 			
 			this.playingClients.remove(conn);
+			this.playerNames.remove(conn);
 			
 			int activePlayers = g.getPlayerCount();
 			
@@ -578,16 +585,17 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			if(this.checkUserLogin(mes.getString("username"), mes.getString("password"))) {
 				this.waitingClients.remove(conn);
 				this.loggedInClients.add(conn);
+				this.playerNames.put(conn, mes.getString("username"));
 				conn.send(this.gameTemplates.toString());
 			} else {
-				this.sendError(conn, "Login credentials incorrect");
+				this.sendError(conn, "Login credentials incorrect.");
 			}
 		} catch (NotYetConnectedException e) {
 			System.err.println("Unable to establish DB connection.");
 			this.sendError(conn, "Unable to establish DB connection.");
 			e.printStackTrace();
 		} catch (JSONException e) {
-			this.sendError(conn, "JSON message: '"+ mes +"' corrupted.");
+			this.sendError(conn, "JSON message: corrupted or parameter missing.");
 			e.printStackTrace();
 		} catch (SQLException e) {
 			System.err.println("Unable to establish DB connection.");
@@ -758,6 +766,12 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 	private boolean checkUserLogin(String username, String password) throws SQLException {
+		
+		for (Entry<WebSocket, String> playerName : this.playerNames.entrySet()) {
+			if (playerName.getValue().equals(username)) {
+				return false;
+			}
+		}
 		
 		if (this.isLoginActivated) {
 			if (this.connectDB()) {
