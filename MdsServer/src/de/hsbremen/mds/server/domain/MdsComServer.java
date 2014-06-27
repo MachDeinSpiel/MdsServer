@@ -52,7 +52,7 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "Version:				MdsComServer 14.6.27.1 (devTeam)";
+	private static final String version = "MdsComServer 14.6.27.1 (devTeam)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -308,7 +308,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		int minPlayers = g.getMinPlayers();
 		int lobbyPlayers = g.getPlayerCount();
 		
-		if (minPlayers > lobbyPlayers) {
+		if (lobbyPlayers >= minPlayers) {
 			String url = g.getServerURL();
 			File file = this.readJSON(url); 
 			
@@ -792,7 +792,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		System.out.println(this.loggedInClients.size() + " Player(s) in the main lobby");
 		System.out.println(this.playingClients.size() + " Player(s) in games");
 		System.out.println(this.games.size() + " Game(s) active\n");
-		System.out.println("Version: " + version + "\n\n");
+		System.out.println(version + "\n\n");
 		
 	}
 
