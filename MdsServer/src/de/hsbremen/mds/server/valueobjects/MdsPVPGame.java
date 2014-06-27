@@ -24,6 +24,11 @@ public class MdsPVPGame extends MdsGame{
 	public boolean startGame(WebSocket conn, MdsComServer mdsComServer, File file) {
 		MdsPlayer p = this.getPlayer(conn);
 		if (p.isInitinal()) {
+			
+			if (this.getPlayerCount() < this.minPlayers) {
+				return false;
+			}
+			
 			try {
 				this.interpreter = new MdsServerInterpreter(mdsComServer, file);
 				for (MdsPlayer pl : this.players) {
@@ -116,6 +121,7 @@ public class MdsPVPGame extends MdsGame{
 		JSONObject game = new JSONObject();
 		game.put("activeplayers", this.players.size());
 		game.put("maxplayers", this.maxPlayers);
+		game.put("minplayers", this.minPlayers);
 		game.put("id", this.gameID);
 		game.put("name", this.name);
 		game.put("author", this.author);

@@ -262,6 +262,7 @@ public class MdsTeamGame extends MdsGame {
 		JSONObject game = new JSONObject();
 		game.put("activeplayers", this.getPlayerCount());
 		game.put("maxplayers", this.maxPlayers);
+		game.put("minplayers", this.minPlayers);
 		game.put("id", this.gameID);
 		game.put("name", this.name);
 		game.put("author", this.author);

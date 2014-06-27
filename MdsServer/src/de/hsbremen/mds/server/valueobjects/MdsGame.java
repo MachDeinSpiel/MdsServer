@@ -15,6 +15,7 @@ public abstract class MdsGame {
 	protected MdsServerInterpreter interpreter;
 	protected int templateID;
 	protected int maxPlayers;
+	protected int minPlayers;
 	protected String name;
 	protected String author;
 	protected double version;
@@ -105,6 +106,14 @@ public abstract class MdsGame {
 
 	public int getMaxPlayers() {
 		return this.maxPlayers;
+	}
+
+	public int getMinPlayers() {
+		return minPlayers;
+	}
+
+	public void setMinPlayers(int minPlayers) {
+		this.minPlayers = minPlayers;
 	}
 
 	public abstract int getPlayerCount();

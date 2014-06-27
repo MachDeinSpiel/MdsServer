@@ -52,7 +52,7 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 06.27 (devTeam Branch)";
+	private static final String version = "Version:				MdsComServer 14.6.27.1 (devTeam)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -61,12 +61,14 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private Map<Integer, MdsGame> games;
 	private Map<WebSocket, String> playerNames;
 	private Connection dbConnection;
-	private final boolean isLoginActivated = true;
+	private boolean isLoginActivated = true;
 	private final String sessionToken = new SessionIdentifierGenerator().nextSessionId();
 		
 	
-	public MdsComServer(int port, String configURL) throws UnknownHostException {
+	public MdsComServer(int port, String configURL, boolean userauth) throws UnknownHostException {
 		super(new InetSocketAddress(port));
+		System.out.println(this.version);
+		this.isLoginActivated = userauth;
 		this.waitingClients = new Vector<WebSocket>();
 		this.loggedInClients = new Vector<WebSocket>();
 		this.playingClients = new HashMap<WebSocket, Integer>();
@@ -224,6 +226,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		String appTheme = (String) this.getGameTemplateValue(gameTemplateId, "apptheme");
 		double version = (Double) this.getGameTemplateValue(gameTemplateId, "version");
 		int maxp = (Integer) this.getGameTemplateValue(gameTemplateId, "maxplayers");
+		int minp = (Integer) this.getGameTemplateValue(gameTemplateId, "minplayers");
 		int numberOfTeams = (Integer) this.getGameTemplateValue(gameTemplateId, "teams");
 		int gameID = 0;
 		while(this.games.containsKey(gameID)) {
@@ -301,11 +304,27 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private boolean startGame(WebSocket conn, JSONObject mess) {
 		int gameId = this.playingClients.get(conn);
 		MdsGame g = this.games.get(gameId);
-		String url = g.getServerURL();
-		System.out.println("\nStarting new game with " + url);
-		File file = this.readJSON(url); 
-		this.notifyLobby();
-		return g.startGame(conn, this, file);
+		
+		int minPlayers = g.getMinPlayers();
+		int lobbyPlayers = g.getPlayerCount();
+		
+		if (minPlayers > lobbyPlayers) {
+			String url = g.getServerURL();
+			File file = this.readJSON(url); 
+			
+			boolean isGameStarted = g.startGame(conn, this, file);
+			
+			if (isGameStarted) {
+				System.out.println("\nStarting new game with " + url);
+				return true;
+			} else {
+				return false;
+			}
+		
+		} else {
+			this.sendError(conn, "You need more players to start this game.");
+		}
+		return false;
 		
 	}
 	
@@ -499,8 +518,9 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					}
 					
 					if (action.equals("start")) {
-						this.startGame(conn, mes);
-						this.notifyLobby();
+						if (this.startGame(conn, mes)) {
+							this.notifyLobby();
+						}
 						return;
 					}
 					
@@ -582,7 +602,18 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private void loginClient(WebSocket conn, JSONObject mes) {
 		
 		try {
-			if(this.checkUserLogin(mes.getString("username"), mes.getString("password"))) {
+			
+			String username = mes.getString("username");
+			String password = mes.getString("password");
+			
+			for (Entry<WebSocket, String> playerName : this.playerNames.entrySet()) {
+				if (playerName.getValue().equals(username)) {
+					this.sendError(conn, "User '" + username + "' already logged in.");
+					return;
+				}
+			}
+			
+			if(this.checkUserLogin(username, password)) {
 				this.waitingClients.remove(conn);
 				this.loggedInClients.add(conn);
 				this.playerNames.put(conn, mes.getString("username"));
@@ -737,9 +768,17 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 		// Ueberprüfung, ob es geklappt hat
 		if (json.exists()) {
-			System.out.println("Reading JSON successful: " + json.length());
+			System.out.println("\nReading URL successful: 		" + json.length() + " Bytes");
 		} else {
-			System.out.println("Reading JSON failed.");
+			System.out.println("\nReading URL failed.");
+		}
+		
+		try {
+			JSONParser jp = new JSONParser();
+			jp.parse(new FileReader(json));
+		} catch (ParseException | IOException e) {
+			System.err.println("\nError: '"+ url + "' contains no valid JSON data.\n\nServer start aborted.");
+			System.exit(0);
 		}
 
 		return json;
@@ -766,12 +805,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	}
 	
 	private boolean checkUserLogin(String username, String password) throws SQLException {
-		
-		for (Entry<WebSocket, String> playerName : this.playerNames.entrySet()) {
-			if (playerName.getValue().equals(username)) {
-				return false;
-			}
-		}
 		
 		if (this.isLoginActivated) {
 			if (this.connectDB()) {
@@ -802,6 +835,13 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		  public String nextSessionId() {
 		    return new BigInteger(130, random).toString(32);
 		  }
+	}
+
+	public void shutdown() {
+		for (WebSocket conn : this.connections()) {
+			this.sendError(conn, "Server disconnected.");
+		}
+		
 	}
 	
 	
