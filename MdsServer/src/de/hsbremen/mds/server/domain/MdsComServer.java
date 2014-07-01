@@ -52,7 +52,7 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 14.6.27.1 (devTeam)";
+	private static final String version = "MdsComServer 14.7.1 (devTeam)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -438,11 +438,24 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				return;
 			}
 			
+			if (mode.equals("runninggames")) {
+				JSONObject activeGames = this.getRunningGames();
+				conn.send(activeGames.toString());	
+				return;
+			}
+			
+			if (mode.equals("allgames")) {
+				JSONObject activeGames = this.getGames();
+				conn.send(activeGames.toString());	
+				return;
+			}
+			
 			if (this.waitingClients.contains(conn)) {
 				if (mode.equals("login")) {
 					this.loginClient(conn, mes);
+					return;
 				}
-				return;
+				
 
 			}
 			
@@ -470,12 +483,19 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			}
 			
 			if (mode.equals("monitor")) {
+				System.out.println("mode: Monitor");
 				int gameID = (Integer) mes.get("id");
 				String name = (String) mes.get("name");
 				
-				MdsGame g = this.games.get(gameID);
-				if (g.isRunning()) {
+				if (this.games.isEmpty()) {
+					this.sendError(conn, "There are no games on this server.");
+					return;
+				}
 				
+				MdsGame g = this.games.get(gameID);
+				
+				if (g.isRunning()) {
+					System.out.println("Attaching Monitor");
 					this.monitors.put(conn, gameID);
 					this.games.get(gameID).getInterpreter().attachMonitor(name, conn);
 					this.loggedInClients.remove(conn);
@@ -658,6 +678,31 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		return activeGames;
 	}
 	
+	private JSONObject getRunningGames() {
+		
+		JSONObject runningGames = new JSONObject();
+		runningGames.put("mode", "runninggames");
+		JSONArray games = new JSONArray();
+		for (MdsGame g : this.games.values()) {
+			if (g.isRunning()) {
+				games.put(g.toJSON());
+			}
+		}
+		runningGames.put("games", games);
+		return runningGames;
+	}
+	
+
+	private JSONObject getGames() {
+		JSONObject runningGames = new JSONObject();
+		runningGames.put("mode", "allgames");
+		JSONArray games = new JSONArray();
+		for (MdsGame g : this.games.values()) {
+			games.put(g.toJSON());
+		}
+		runningGames.put("games", games);
+		return runningGames;
+	}
 
 	private void notifyLobby() {
 		String response = this.getActiveGames().toString();
