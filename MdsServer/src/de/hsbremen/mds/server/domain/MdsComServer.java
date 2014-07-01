@@ -2,7 +2,6 @@ package de.hsbremen.mds.server.domain;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -42,6 +41,7 @@ import de.hsbremen.mds.common.exception.UnknownWhiteboardTypeException;
 import de.hsbremen.mds.common.interfaces.ComServerInterface;
 import de.hsbremen.mds.common.whiteboard.WhiteboardEntry;
 import de.hsbremen.mds.common.whiteboard.WhiteboardUpdateObject;
+import de.hsbremen.mds.server.persistence.MdsFileWriter;
 import de.hsbremen.mds.server.valueobjects.MdsGame;
 import de.hsbremen.mds.server.valueobjects.MdsPVPGame;
 import de.hsbremen.mds.server.valueobjects.MdsPlayer;
@@ -61,6 +61,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 	private Map<Integer, MdsGame> games;
 	private Map<WebSocket, String> playerNames;
 	private Connection dbConnection;
+	private MdsFileWriter fileWriter;
 	private boolean isLoginActivated = true;
 	private final String sessionToken = new SessionIdentifierGenerator().nextSessionId();
 		
@@ -69,14 +70,64 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		super(new InetSocketAddress(port));
 		System.out.println(this.version);
 		this.isLoginActivated = userauth;
+		this.initServer(configURL);
+	}
+	
+	private void initServer(String url) {
+		
 		this.waitingClients = new Vector<WebSocket>();
 		this.loggedInClients = new Vector<WebSocket>();
 		this.playingClients = new HashMap<WebSocket, Integer>();
 		this.monitors = new HashMap<WebSocket, Integer>();
 		this.games = new HashMap<Integer, MdsGame>();
 		this.playerNames = new HashMap<WebSocket, String>();
-		this.initGames(configURL);
+		this.fileWriter = new MdsFileWriter();
+		
+		File file = this.readJSON(url);
+		JSONObject json = null;
+		JSONParser jP = new JSONParser();
+		try {
+			json = new JSONObject(jP.parse(new FileReader(file)).toString());
+		} catch (JSONException | IOException | ParseException e) {
+			e.printStackTrace();
+		}
+		
+		this.initGames(json);
 		this.testDbConnection();
+
+	}
+
+	private void initGames(JSONObject json) {
+		
+		this.gameTemplates = json;
+		
+		if (!this.games.isEmpty()) {
+			
+			List<MdsGame> openGames = new Vector<MdsGame>();
+			
+			for (Entry<Integer, MdsGame> g : this.games.entrySet()) {
+				List<WebSocket> playersFormCanceledGames = null;
+				MdsGame game = g.getValue();
+				if (!game.isRunning()) {
+					playersFormCanceledGames = game.terminate();
+					openGames.add(game);
+				}
+				if (!playersFormCanceledGames.isEmpty()) {
+					for (WebSocket ws : playersFormCanceledGames) {
+						this.movePlayerToLobby(ws);
+					}
+				}
+					
+			}
+			
+			for (MdsGame g : openGames) {
+				this.games.remove(g);
+			}
+			
+		}
+		
+		this.notifyLobbyActiveGames();
+		
 		
 	}
 
@@ -145,61 +196,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		super(address);
 	}
 	
-	private void initGames(String configURL) {
-		File file = this.readJSON(configURL);
-		JSONObject json = null;
-		JSONParser jP = new JSONParser();
-		try {
-			json = new JSONObject(jP.parse(new FileReader(file)).toString());
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		this.gameTemplates = json;
-		
-		if (!this.games.isEmpty()) {
-			
-			
-		
-			List<MdsGame> openGames = new Vector<MdsGame>();
-			
-			for (Entry<Integer, MdsGame> g : this.games.entrySet()) {
-				List<WebSocket> playersFormCanceledGames = null;
-				MdsGame game = g.getValue();
-				if (!game.isRunning()) {
-					playersFormCanceledGames = game.terminate();
-					openGames.add(game);
-				}
-				if (!playersFormCanceledGames.isEmpty()) {
-					for (WebSocket ws : playersFormCanceledGames) {
-						this.movePlayerToLobby(ws);
-					}
-				}
-					
-			}
-			
-			for (MdsGame g : openGames) {
-				this.games.remove(g);
-			}
-			
-			
-			this.notifyLobby();
-		}
-		
-		
-	}
-	
-	
 	private synchronized boolean createGame(WebSocket conn, JSONObject mess) {
 		
 		int gameTemplateId = mess.getInt("id");
@@ -261,7 +257,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		this.playingClients.put(conn, gameID);
 		this.loggedInClients.remove(conn);
 		this.games.put(gameID, g);
-		this.notifyLobby();
+		this.notifyLobbyActiveGames();
 		g.notifyLobby();
 		return true;
 		
@@ -287,7 +283,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				}
 				this.playingClients.put(conn, gameID);
 				this.loggedInClients.remove(conn);
-				this.notifyLobby();
+				this.notifyLobbyActiveGames();
 				g.notifyLobby();
 			} else {
 				this.sendError(conn, "This game is already running.");
@@ -405,7 +401,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				this.games.remove(gameID);
 			}
 			
-			this.notifyLobby();
+			this.notifyLobbyActiveGames();
 			
 		}
 		
@@ -455,8 +451,10 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					this.loginClient(conn, mes);
 					return;
 				}
-				
-
+			}
+			
+			if (mode.equals("config")) {
+				this.updateGameTemplates(conn, mes);
 			}
 			
 			if (this.loggedInClients.contains(conn)) {
@@ -476,7 +474,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				}
 				
 				if (mode.equals("reloadgames")) {
-					this.reloadGames(conn, mes);
+					this.updateGameTemplates(conn, mes);
 					return;
 				}
 
@@ -539,7 +537,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					
 					if (action.equals("start")) {
 						if (this.startGame(conn, mes)) {
-							this.notifyLobby();
+							this.notifyLobbyActiveGames();
 						}
 						return;
 					}
@@ -561,7 +559,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 							if(activePlayers < 1) {
 								this.games.remove(gameID);
 							}							
-							this.notifyLobby();
+							this.notifyLobbyActiveGames();
 							g.notifyLobby();
 							this.movePlayerToLobby(kicked);							
 							return;
@@ -578,7 +576,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 						}
 						
 						this.movePlayerToLobby(conn);
-						this.notifyLobby();
+						this.notifyLobbyActiveGames();
 						g.notifyLobby();
 						return;
 					}
@@ -596,9 +594,66 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 	}
 
-	private void reloadGames(WebSocket conn, JSONObject mes) {
-//		String token = (String) mes.get("token");
-//		String url = (String) mes.get("url");
+	private void updateGameTemplates(WebSocket conn, JSONObject mes) {
+		
+		if (!mes.has("username")) {
+			this.sendError(conn, "Please provide a username!");
+			return;
+		}
+		if (!mes.has("password")) {
+			this.sendError(conn, "Please provide a password!");
+			return;
+		}
+		if (!mes.has("config")) {
+			this.sendError(conn, "Configuration missing.");
+			return;
+		}
+		
+		String username = mes.getString("username");
+		String password = mes.getString("password");
+		
+		try {
+			if (this.checkUserLogin(username, password)) {
+				JSONObject newGame = mes.getJSONObject("config");
+				JSONArray theGames = this.gameTemplates.getJSONArray("games");
+				JSONArray newGames = new JSONArray();
+				
+				int i = 0;
+				for (;i < theGames.length(); i++) {
+					JSONObject oneGame = theGames.getJSONObject(i);
+					oneGame.remove("id");
+					oneGame.put("id", i);
+					newGames.put(oneGame);
+				}
+				if (newGame.has("id")) {
+					newGame.remove("id");
+				}
+				newGame.put("id", i);
+				newGames.put(newGame);
+				
+				this.gameTemplates.remove("games");
+				this.gameTemplates.put("games", newGames);
+				
+				JSONObject response = new JSONObject();
+				response.put("mode", "success");
+				conn.send(response.toString());
+				this.notifyLobbyGameTemplates();
+				
+			} else {
+				this.sendError(conn, "Login credentials incorrect.");
+			}
+		} catch (NotYetConnectedException e) {
+			System.err.println("Unable to establish DB connection.");
+			this.sendError(conn, "Unable to establish DB connection.");
+			e.printStackTrace();
+		} catch (JSONException e) {
+			this.sendError(conn, "JSON message: corrupted or parameter missing.");
+			e.printStackTrace();
+		} catch (SQLException e) {
+			System.err.println("Unable to establish DB connection.");
+			this.sendError(conn, "Unable to establish DB connection.");
+			e.printStackTrace();
+		}
 		
 	}
 
@@ -704,8 +759,21 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		return runningGames;
 	}
 
-	private void notifyLobby() {
+	private void notifyLobbyActiveGames() {
 		String response = this.getActiveGames().toString();
+		for(WebSocket ws : this.loggedInClients) {
+			ws.send(response);
+		}
+		
+		if (!this.monitors.isEmpty()) {
+			for(Entry<WebSocket, Integer> ws : this.monitors.entrySet()) {
+				ws.getKey().send(response);
+			}
+		}
+	}
+	
+	private void notifyLobbyGameTemplates() {
+		String response = this.gameTemplates.toString();
 		for(WebSocket ws : this.loggedInClients) {
 			ws.send(response);
 		}
