@@ -607,6 +607,28 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		if (!mes.has("config")) {
 			this.sendError(conn, "Configuration missing.");
 			return;
+		} else {
+			
+			JSONObject gameJSON = mes.getJSONObject("config");
+			try {
+				gameJSON.get("name");
+				gameJSON.get("author");
+				gameJSON.get("version");
+				gameJSON.get("minplayers");
+				gameJSON.get("maxplayers");
+				gameJSON.get("teams");
+				gameJSON.get("apptheme");
+				gameJSON.get("serverurl");
+				gameJSON.get("clienturl");
+				
+				if ((boolean) gameJSON.get("isteamgame")) {
+					gameJSON.get("teamnames");
+				}
+				
+			} catch (Exception e) {
+				this.sendError(conn, "Configuration incomplete or invalid: '" + e.getMessage() + "'");
+				return;
+			}
 		}
 		
 		String username = mes.getString("username");
