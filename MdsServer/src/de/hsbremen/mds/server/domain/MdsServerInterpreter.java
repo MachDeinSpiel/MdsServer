@@ -35,14 +35,8 @@ public class MdsServerInterpreter implements ComServerInterface {
 		if(entry.getValue().equals("delete")){//Whiteboard loeschen
 			this.removeWhiteboard(conn, keys);
 			this.sendUpdate(conn, keys, entry);
-//			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-//				if(!mapEntry.getValue().equals(conn)){
-//					this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
-//				}
-//			}			
 		}else{
-			// Lokales WB aktualisieren
-			this.onWhiteboardUpdate(keys, entry);
+			this.onWhiteboardUpdate(keys, entry);// Lokales WB aktualisieren
 			if(entry.getValue() instanceof Whiteboard){
 				try {
 					makeWhiteboardList((Whiteboard) entry.getValue(), keys);
@@ -93,90 +87,6 @@ public class MdsServerInterpreter implements ComServerInterface {
 		whiteboardUpdateObjects.clear();	
 	}
 
-//	@Override
-//	public boolean onNewConnection(WebSocket conn, String name) {
-//		System.out.println("Neuer Player angemeldet");
-//		String playerName = name;
-//		
-//		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
-//		
-//		if (player == null) {
-//
-//			try {
-//				player = new WhiteboardEntry(playerName, "all");
-//				Whiteboard playerAtt = new Whiteboard();
-//				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
-//					playerAtt.put(entry.getKey(), 
-//							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
-//				}
-//				player = new WhiteboardEntry(playerAtt, "all");
-//
-//			} catch (InvalidWhiteboardEntryException e) {
-//				e.printStackTrace();
-//			}
-//		
-//			this.clients.put("Players," + playerName, conn);
-//			
-//			List<String> keys = new Vector<String>();
-//			keys.add("Players");
-//			keys.add(playerName);
-//
-//			this.onWhiteboardUpdate(conn, keys, player);
-//			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
-//			
-//			return true;
-//		}	
-//		
-//		return false;
-//	}	
-//	
-//	/**
-//	 * 
-//	 * 
-//	 * @param conn WebSocket
-//	 * @param playerName String 
-//	 * @param teamName String
-//	 */
-//	//TODO: Refactorn. zusammen packen in eine onNewConnection methode 
-//	public boolean onNewConnection(WebSocket conn, String name, String teamName){
-//		System.out.println("Neuer Player fuer das Team: "+ teamName +" angemeldet");
-//		String playerName = name;
-//		WhiteboardEntry player = this.whiteboard.getAttribute("Teams", teamName, playerName);
-//		
-//		if (player == null) {
-//			try {
-//				player = new WhiteboardEntry(playerName, "all");
-//				Whiteboard playerAtt = new Whiteboard();
-//				for(Entry<String, WhiteboardEntry> entry : this.playerTemplate.entrySet()) {
-//					playerAtt.put(entry.getKey(), 
-//							new WhiteboardEntry(this.playerTemplate.get(entry.getKey()).getValue(), this.playerTemplate.get(entry.getKey()).getVisibility()));
-//				}
-//				player = new WhiteboardEntry(playerAtt, "all");
-//
-//			} catch (InvalidWhiteboardEntryException e) {
-//				e.printStackTrace();
-//			}
-//		
-//			this.clients.put(teamName + playerName, conn);
-//			
-//			List<String> keys = new Vector<String>();
-//			keys.add("Teams");
-//			keys.add(teamName);
-//			keys.add(playerName);
-//
-//			this.onWhiteboardUpdate(conn, keys, player);
-//			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
-//			
-//			return true;
-//		}	
-//		
-//		return false;
-//	}
-
-	
-	//##########################TEST#################################################
-	// Refactor von onNewConnection
-	 
 	/** 
 	 * 
 	 * @param conn WebSocket
@@ -232,7 +142,6 @@ public class MdsServerInterpreter implements ComServerInterface {
 		
 		return false;
 	}
-	//###############################################################################################
 	
 	/**
 	 * 
