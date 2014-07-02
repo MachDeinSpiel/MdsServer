@@ -256,6 +256,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		g.setClientURL(curl);
 		g.setServerURL(surl);
 		g.setAppTheme(appTheme);
+		g.setMinPlayers(minp);
 		this.playingClients.put(conn, gameID);
 		this.loggedInClients.remove(conn);
 		this.games.put(gameID, g);
@@ -602,6 +603,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 
 	private void updateGameTemplates(WebSocket conn, JSONObject mes) {
 		
+		JSONObject newGame = new JSONObject();
+		
 		if (!mes.has("username")) {
 			this.sendError(conn, "Please provide a username!");
 			return;
@@ -616,19 +619,23 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		} else {
 			
 			JSONObject gameJSON = mes.getJSONObject("config");
+			
 			try {
-				gameJSON.get("name");
-				gameJSON.get("author");
-				gameJSON.get("version");
-				gameJSON.get("minplayers");
-				gameJSON.get("maxplayers");
-				gameJSON.get("teams");
-				gameJSON.get("apptheme");
-				gameJSON.get("serverurl");
-				gameJSON.get("clienturl");
+				newGame.put("name", gameJSON.getString("name"));
+				newGame.put("version", gameJSON.getDouble("version"));
+				newGame.put("minplayers", gameJSON.getInt("minplayers"));
+				newGame.put("author",gameJSON.getString("author"));
+				newGame.put("maxplayers",gameJSON.getInt("maxplayers"));
+				newGame.put("teams",gameJSON.getInt("teams"));
+				newGame.put("apptheme",gameJSON.getString("apptheme"));
+				newGame.put("serverurl",gameJSON.getString("serverurl"));
+				newGame.put("clienturl",gameJSON.getString("clienturl"));
 				
 				if ((boolean) gameJSON.get("isteamgame")) {
-					gameJSON.get("teamnames");
+					newGame.put("isteamgame", gameJSON.getBoolean("isteamgame"));
+					newGame.put("teamnames", gameJSON.getJSONArray("teamnames"));
+				} else {
+					newGame.put("isteamgame", gameJSON.getBoolean("isteamgame"));
 				}
 				
 			} catch (Exception e) {
@@ -642,7 +649,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		try {
 			if (this.checkUserLogin(username, password)) {
-				JSONObject newGame = mes.getJSONObject("config");
+				//JSONObject newGame = mes.getJSONObject("config");
 				JSONArray theGames = this.gameTemplates.getJSONArray("games");
 				JSONArray newGames = new JSONArray();
 				
@@ -652,9 +659,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					oneGame.remove("id");
 					oneGame.put("id", i);
 					newGames.put(oneGame);
-				}
-				if (newGame.has("id")) {
-					newGame.remove("id");
 				}
 				newGame.put("id", i);
 				newGames.put(newGame);

@@ -2,11 +2,8 @@ package de.hsbremen.mds.server.domain;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 
 import org.java_websocket.WebSocket;
-
-import sun.net.util.URLUtil;
 
 /**
  * 
@@ -72,6 +69,7 @@ public class MdsServer {
 			System.out.println("Usage: \n	mdsserver.jar <configuration-URL> [-debug | -debug -noauth]");
 		}
 		
+	
 	
 		/*
 		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
