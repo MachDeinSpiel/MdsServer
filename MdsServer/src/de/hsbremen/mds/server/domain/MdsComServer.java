@@ -52,7 +52,7 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 14.7.1 (devTeam)";
+	private static final String version = "MdsComServer 14.2 (devTeam)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -215,6 +215,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 		
 		MdsPlayer p = new MdsPlayer(conn, playerName, true);
 		
+		//String previewImgUrl = (String) this.getGameTemplateValue(gameTemplateId, "previewimg");
 		String surl = (String) this.getGameTemplateValue(gameTemplateId, "serverurl");
 		String curl = (String) this.getGameTemplateValue(gameTemplateId, "clienturl");
 		String name = (String) this.getGameTemplateValue(gameTemplateId, "name");
@@ -248,6 +249,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			g.putPlayer(p);
 		}
 		
+		//g.setPreviewImgUrl(previewImgUrl);
 		g.setName(name);
 		g.setAuthor(author);
 		g.setVersion(version);
@@ -787,11 +789,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			ws.send(response);
 		}
 		
-		if (!this.monitors.isEmpty()) {
-			for(Entry<WebSocket, Integer> ws : this.monitors.entrySet()) {
-				ws.getKey().send(response);
-			}
-		}
 	}
 	
 	private void notifyLobbyGameTemplates() {
@@ -800,11 +797,6 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 			ws.send(response);
 		}
 		
-		if (!this.monitors.isEmpty()) {
-			for(Entry<WebSocket, Integer> ws : this.monitors.entrySet()) {
-				ws.getKey().send(response);
-			}
-		}
 	}
 
 	public void onFragment(WebSocket conn, Framedata fragment) {

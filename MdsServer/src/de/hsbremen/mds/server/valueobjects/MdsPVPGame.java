@@ -130,6 +130,7 @@ public class MdsPVPGame extends MdsGame{
 		game.put("serverurl", this.surl);
 		game.put("isteamgame", this.isTeamGame);
 		game.put("apptheme", this.appTheme);
+		//game.put("previewimg", this.previewImgUrl);
 		
 		String playernames = "";
 		

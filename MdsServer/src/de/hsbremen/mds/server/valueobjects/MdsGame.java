@@ -21,6 +21,7 @@ public abstract class MdsGame {
 	protected double version;
 	protected String curl;
 	protected String surl;
+	protected String previewImgUrl;
 	protected String appTheme;
 	protected boolean isRunning = false;
 	public void setRunning(boolean isRunning) {
@@ -88,6 +89,14 @@ public abstract class MdsGame {
 
 	public String getAppTheme() {
 		return appTheme;
+	}
+
+	public String getPreviewImgUrl() {
+		return previewImgUrl;
+	}
+
+	public void setPreviewImgUrl(String previewImgUrl) {
+		this.previewImgUrl = previewImgUrl;
 	}
 
 	public void setAppTheme(String appTheme) {
