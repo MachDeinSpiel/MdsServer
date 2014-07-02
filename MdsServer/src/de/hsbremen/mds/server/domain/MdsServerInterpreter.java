@@ -22,12 +22,14 @@ public class MdsServerInterpreter implements ComServerInterface {
 	private Map<String,WebSocket> clients = new ConcurrentHashMap<String, WebSocket>();	//Websockets Hashmap...
 	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
 	private MdsComServer comServer;
+	private int maxPlayer;
 	
-	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
+	public MdsServerInterpreter (MdsComServer mdsComServer, File file, int maxPlayer_) {
 		this.comServer  = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
 		this.savePlayerTemplate();
+		this.maxPlayer = maxPlayer_;
 	}
 
 	@Override
@@ -135,8 +137,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 			}
 			
 			this.onWhiteboardUpdate(conn, keys, player);
-			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
-			
+			if(maxPlayer == this.clients.size()){
+				this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+			}
 			return true;
 		}	
 		
@@ -286,7 +289,12 @@ public class MdsServerInterpreter implements ComServerInterface {
 		return key = keys.toArray(key);
 	}
 	
-	//########################Monitoring method##################
+	/* ##############################################################################
+	* 
+	*   Monitoring method
+	* 
+	*  #############################################################################
+	*/
 	public void attachMonitor(String name, WebSocket conn) {
 		this.clients.put(name, conn);
 		this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
