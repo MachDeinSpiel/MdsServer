@@ -52,7 +52,7 @@ import de.hsbremen.mds.server.valueobjects.MdsTeamGame;
  */
 public class MdsComServer extends WebSocketServer implements ComServerInterface {
 	
-	private static final String version = "MdsComServer 14.2 (devTeam)";
+	private static final String version = "MdsComServer 14.7.2 (devTeam)";
 	private JSONObject gameTemplates;
 	private List<WebSocket> loggedInClients;
 	private List<WebSocket> waitingClients;
@@ -288,7 +288,11 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 				this.notifyLobbyActiveGames();
 				g.notifyLobby();
 			} else {
-				this.sendError(conn, "This game is already running.");
+				if (!g.isRunning()){
+					this.sendError(conn, "No more player slots available.");
+				} else {
+					this.sendError(conn, "This game is already running.");
+				}
 				return false;
 			}
 		} else {

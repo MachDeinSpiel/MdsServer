@@ -146,7 +146,7 @@ public class MdsTeamGame extends MdsGame {
 		Map<MdsPlayer, String> allPlayers = this.getPlayersInTeams();
 		if (p.isInitinal()) {
 			try {
-				this.interpreter = new MdsServerInterpreter(mdsComServer, file);
+				this.interpreter = new MdsServerInterpreter(mdsComServer, file, this.getPlayerCount());
 				for (Entry<MdsPlayer, String> pl : allPlayers.entrySet()) {
 					MdsPlayer ply = pl.getKey();
 					this.interpreter.onNewConnection(ply.getWS(), ply.getName(), pl.getValue());

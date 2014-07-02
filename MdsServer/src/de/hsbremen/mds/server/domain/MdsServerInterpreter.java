@@ -138,7 +138,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 			
 			this.onWhiteboardUpdate(conn, keys, player);
 			if(maxPlayer == this.clients.size()){
-				this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
+				this.initPlayers();
 			}
 			return true;
 		}	
@@ -202,6 +202,17 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * 
 	 * ##########################################################################################################################################
 	 */
+
+	
+	/**
+	 * Methode zum Senden des Whiteboards mit allen Spielern bei Spielstart
+	 */
+	private void initPlayers() {
+		for (Entry<String, WebSocket> player : this.clients.entrySet()) {
+			this.onFullWhiteboardUpdate(player.getValue(), this.whiteboard, new Vector<String>());
+		}
+		
+	}
 
 	/**
 	 * Hilfs Methode.

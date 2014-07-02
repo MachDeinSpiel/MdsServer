@@ -30,7 +30,7 @@ public class MdsPVPGame extends MdsGame{
 			}
 			
 			try {
-				this.interpreter = new MdsServerInterpreter(mdsComServer, file);
+				this.interpreter = new MdsServerInterpreter(mdsComServer, file, this.getPlayerCount());
 				for (MdsPlayer pl : this.players) {
 					this.interpreter.onNewConnection(pl.getWS(), pl.getName(), null);
 				}
