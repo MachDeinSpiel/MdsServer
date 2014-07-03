@@ -111,7 +111,7 @@ public abstract class MdsGame {
 		return this.isTeamGame;
 	}
 
-	public abstract void exitPlayer(WebSocket conn);
+	public abstract boolean exitPlayer(WebSocket conn);
 
 	public int getMaxPlayers() {
 		return this.maxPlayers;

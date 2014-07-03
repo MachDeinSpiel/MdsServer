@@ -575,8 +575,17 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 					}
 					
 					if (action.equals("leave")) {
-						g.exitPlayer(conn);
+						boolean initialLeft = g.exitPlayer(conn);
 						int activePlayers = g.getPlayerCount();
+						
+						if (initialLeft) {
+							List<WebSocket> players  = g.terminate();
+							for (WebSocket con : players) {
+								this.movePlayerToLobby(con);
+							}
+							this.notifyLobbyActiveGames();
+							return;
+						}
 						
 						if(activePlayers < 1) {
 							this.games.remove(gameID);

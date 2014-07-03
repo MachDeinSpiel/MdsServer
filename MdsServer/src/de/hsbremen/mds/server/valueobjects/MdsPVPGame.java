@@ -192,7 +192,7 @@ public class MdsPVPGame extends MdsGame{
 	}
 
 	@Override
-	public void exitPlayer(WebSocket conn) {
+	public boolean exitPlayer(WebSocket conn) {
 		MdsPlayer p = null;
 		for(MdsPlayer pl : this.players) {
 			if (pl.getWS() == conn) {
@@ -202,17 +202,20 @@ public class MdsPVPGame extends MdsGame{
 		
 		if (p != null) {
 			if (p.isInitinal()) {
-				this.players.remove(p);
+				return true;
+				/*this.players.remove(p);
 				for (MdsPlayer pl : this.players) {
 					if (!pl.isInitinal()) {
 						pl.setInitinal(true);
 						break;
 					}
-				}
+				}*/
 			} else {
 				this.players.remove(p);
+				return false;
 			}
 		}
+		return false;
 		
 	}
 

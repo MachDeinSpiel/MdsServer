@@ -295,23 +295,26 @@ public class MdsTeamGame extends MdsGame {
 	}
 
 	@Override
-	public void exitPlayer(WebSocket conn) {
+	public boolean exitPlayer(WebSocket conn) {
 		MdsPlayer p = this.getPlayer(conn);
 	
 		if (p != null) {
 			if (p.isInitinal()) {
+				return true;
+				/*
 				this.removePlayer(p);
 				for (MdsPlayer pl : this.getAllPlayers()) {
 					if (!pl.isInitinal()) {
 						pl.setInitinal(true);
 						break;
 					}
-				}
+				}*/
 			} else {
 				this.removePlayer(p);
+				return false;
 			}
 		}
-		
+		return false;
 	}
 
 	@Override
