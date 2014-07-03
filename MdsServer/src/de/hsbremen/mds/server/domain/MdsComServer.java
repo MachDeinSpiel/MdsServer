@@ -583,7 +583,8 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 							for (WebSocket con : players) {
 								this.movePlayerToLobby(con);
 							}
-							this.notifyLobbyActiveGames();
+							this.games.remove(gameID);
+							this.notifyLobbyGameTemplates();
 							return;
 						}
 						
@@ -592,7 +593,7 @@ public class MdsComServer extends WebSocketServer implements ComServerInterface 
 						}
 						
 						this.movePlayerToLobby(conn);
-						this.notifyLobbyActiveGames();
+						this.notifyLobbyGameTemplates();
 						g.notifyLobby();
 						return;
 					}
