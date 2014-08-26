@@ -22,27 +22,23 @@ public class MdsServerInterpreter implements ComServerInterface {
 	private Map<String,WebSocket> clients = new ConcurrentHashMap<String, WebSocket>();	//Websockets Hashmap...
 	private Vector<WhiteboardUpdateObject> whiteboardUpdateObjects = new Vector<WhiteboardUpdateObject>();
 	private MdsComServer comServer;
+	private int maxPlayer;
 	
-	public MdsServerInterpreter (MdsComServer mdsComServer, File file) {
+	public MdsServerInterpreter (MdsComServer mdsComServer, File file, int maxPlayer_) {
 		this.comServer  = mdsComServer;
 		ParserServerNew parServ = new ParserServerNew(file);
 		this.whiteboard = parServ.getWB();
 		this.savePlayerTemplate();
+		this.maxPlayer = maxPlayer_;
 	}
 
 	@Override
 	public void onWhiteboardUpdate(WebSocket conn, List<String> keys, WhiteboardEntry entry) {
-		if(entry.getValue().equals("delete")){
+		if(entry.getValue().equals("delete")){//Whiteboard loeschen
 			this.removeWhiteboard(conn, keys);
 			this.sendUpdate(conn, keys, entry);
-//			for (Entry<String, WebSocket> mapEntry : this.clients.entrySet()) {
-//				if(!mapEntry.getValue().equals(conn)){
-//					this.comServer.sendUpdate(mapEntry.getValue(), keys, entry);
-//				}
-//			}			
 		}else{
-			// Lokales WB aktualisieren
-			this.onWhiteboardUpdate(keys, entry);
+			this.onWhiteboardUpdate(keys, entry);// Lokales WB aktualisieren
 			if(entry.getValue() instanceof Whiteboard){
 				try {
 					makeWhiteboardList((Whiteboard) entry.getValue(), keys);
@@ -75,9 +71,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 
 	
 	/**
+	 * Das Komplette Whiteboard wird gesendet. 
 	 * 
 	 * 
-	 * d
 	 * @param conn WebSocket
 	 * @param wb   Whiteboard
 	 * @param keys List<String> 
@@ -93,23 +89,27 @@ public class MdsServerInterpreter implements ComServerInterface {
 		whiteboardUpdateObjects.clear();	
 	}
 
-	/**
+	/** 
 	 * 
-	 * 
-	 * @param wb Whiteboard
-	 * @param keys List<String>
-	 * @throws InvalidWhiteboardEntryException
+	 * @param conn WebSocket
+	 * @param playerName String 
+	 * @param teamName String
 	 */
-
-	@Override
-	public boolean onNewConnection(WebSocket conn, String name) {
-		System.out.println("Neuer Player angemeldet");
+	public boolean onNewConnection(WebSocket conn, String name, String teamName){
+		
+		WhiteboardEntry player;
+		List<String> keys = new Vector<String>();
 		String playerName = name;
 		
-		WhiteboardEntry player = this.whiteboard.getAttribute("Players", playerName);
+		if(teamName != null){
+			System.out.println("Neuer Player fuer das Team: "+ teamName +" angemeldet");
+			player = this.whiteboard.getAttribute("Teams", teamName, playerName);
+		}else{
+			System.out.println("Neuer Player angemeldet");
+			player = this.whiteboard.getAttribute("Players", playerName);
+		}
 		
 		if (player == null) {
-
 			try {
 				player = new WhiteboardEntry(playerName, "all");
 				Whiteboard playerAtt = new Whiteboard();
@@ -123,20 +123,28 @@ public class MdsServerInterpreter implements ComServerInterface {
 				e.printStackTrace();
 			}
 		
-			this.clients.put("Players," + playerName, conn);
+			if(teamName != null){
+				this.clients.put(teamName + playerName, conn);
 			
-			List<String> keys = new Vector<String>();
-			keys.add("Players");
-			keys.add(playerName);
-
+				keys.add("Teams");
+				keys.add(teamName);
+				keys.add(playerName);
+			}else{
+				this.clients.put("Players," + playerName, conn);
+		
+				keys.add("Players");
+				keys.add(playerName);
+			}
+			
 			this.onWhiteboardUpdate(conn, keys, player);
-			this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());
-			
+			if(maxPlayer == this.clients.size()){
+				this.initPlayers();
+			}
 			return true;
 		}	
 		
 		return false;
-	}	
+	}
 	
 	/**
 	 * 
@@ -195,8 +203,22 @@ public class MdsServerInterpreter implements ComServerInterface {
 	 * ##########################################################################################################################################
 	 */
 
+	
 	/**
+	 * Methode zum Senden des Whiteboards mit allen Spielern bei Spielstart
+	 */
+	private void initPlayers() {
+		for (Entry<String, WebSocket> player : this.clients.entrySet()) {
+			this.onFullWhiteboardUpdate(player.getValue(), this.whiteboard, new Vector<String>());
+		}
+		
+	}
+
+	/**
+	 * Hilfs Methode.
+	 * 
 	 * Sendet Updates an alle Clients, ausser an den In­i­ti­a­tor des Updates.
+	 * 
 	 * 
 	 * @param conn Websocket
 	 * @param keys List<String>
@@ -219,9 +241,9 @@ public class MdsServerInterpreter implements ComServerInterface {
 	}
 	
 	/**
-	 * Locales Whiteboard Update
+	 * Lokales Whiteboard Update.
 	 * 
-	 * @param keys String<List>
+	 * @param keys  String<List>
 	 * @param value WhiteboardEntry
 	 */
 	private void onWhiteboardUpdate(List<String> keys, WhiteboardEntry value) {
@@ -230,10 +252,10 @@ public class MdsServerInterpreter implements ComServerInterface {
 	}
 	
 	/**
+	 * Erstellt, aus dem Globalen Whiteboard, eine Liste.
 	 * 
-	 * 
-	 * @param wb Whiteboard
-	 * @param keys List<String>
+	 * @param  wb   Whiteboard
+	 * @param  keys List<String>
 	 * @throws InvalidWhiteboardEntryException
 	 */
 	private void makeWhiteboardList(Whiteboard wb, List<String> keys) throws InvalidWhiteboardEntryException{
@@ -254,7 +276,8 @@ public class MdsServerInterpreter implements ComServerInterface {
 
 	
 	/**
-	 * Loescht einen gewueschtes Whiteboard.
+	 * Loescht das gewueschtes Whiteboard.
+	 * 
 	 * Z.b Player hat das Spiel verlassen, sein Player Whiteboard wird
 	 * aus den Players Whiteboard geloescht.
 	 * 
@@ -267,10 +290,7 @@ public class MdsServerInterpreter implements ComServerInterface {
 	}	
 
 	/**
-	* Gibt einen String Array zurueck.
-	* 
-	* Im String[] ist der Path fuer das gewueschte Whiteboard.
-	* 
+	* List<String> keys to String Array
 	* 
 	* @param keys List<String>
 	* @return String[]
@@ -279,7 +299,13 @@ public class MdsServerInterpreter implements ComServerInterface {
 		String[] key = new String[keys.size()];
 		return key = keys.toArray(key);
 	}
-
+	
+	/* ##############################################################################
+	* 
+	*   Monitoring method
+	* 
+	*  #############################################################################
+	*/
 	public void attachMonitor(String name, WebSocket conn) {
 		this.clients.put(name, conn);
 		this.onFullWhiteboardUpdate(conn, this.whiteboard, new Vector<String>());

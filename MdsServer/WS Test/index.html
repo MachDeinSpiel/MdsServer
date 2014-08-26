@@ -115,20 +115,28 @@
     <form id="sendForm"><input type="text" id="textField" value="" class="styled-button">
     <input type="submit" value="Send" class="styled-button" style="width:80px">
     <select id="dropdown" class="styled-button">
-    <option value=''>---- Login ----</option>
+    <option value=''>==== Lobby ====</option>
     <option value='{"mode":"login", "username":"", "password":"s3cur3P4ssw0rd"}'>1. Spieler einloggen</option>
-    <option value=''>---- Globale Lobby ----</option>
-    <option value='{"mode":"gametemplates"}'>1. Verfügbare Spiele anfordern</option>
-    <option value='{"mode":"activegames"}'>2. Laufende Spiele anfordern</option>
-    <option value='{"mode":"join","id":0,"name":"Bob"}'>3. Spiel joinen</option>
-    <option value='{"mode":"create","id":0,"name":"Alice","maxplayers":2}'>4. Spiel erstellen (Initialspieler)</option>
-    <option value=''>---- Spiele Lobby ----</option>
+    <option value='{"mode":"gametemplates"}'>2. Verfügbare Spiele anfordern</option>
+    <option value='{"mode":"activegames"}'>3. Laufende Spiele anfordern</option>
+    <option value=''>==== PVP Games ====</option>
+    <option value='{"mode":"join","id":0,"name":"Bob"}'>1. Spiel joinen</option>
+    <option value='{"mode":"create","id":0,"name":"Alice","maxplayers":2}'>2. PVP Spiel erstellen (Initialspieler)</option>
+    <option value=''>==== Team Games ====</option>
+    <option value='{"mode":"join","id":0,"name":"Bob"}'>1. Spiel joinen (ohne Teamnamen)</option>
+    <option value='{"mode":"join","id":0,"name":"Bob", "teamname":"Red"}'>2. Spiel joinen (mit Teamnamen)</option>
+	<option value='{"mode":"create","id":2,"name":"Alice","maxplayers":2, "teamname":"Blue"}'>3. Teamspiel erstellen (Initialspieler)</option>
+    <option value=''>==== Spiele Lobby ====</option>
     <option value='{"mode":"gamelobby", "action":"players"}'>1. Liste der Spieler anfordern</option>
-    <option value='{"mode":"gamelobby", "action":"kick", "player":1}'>2. Spieler kicken</option>
+    <option value='{"mode":"gamelobby", "action":"kick", "player":"Bob"}'>2. Spieler kicken</option>
     <option value='{"mode":"gamelobby", "action":"start"}'>3. Spiel starten</option>
     <option value='{"mode":"gamelobby", "action":"leave"}'>4. Spiel verlassen</option>
-    <option value=''>---- Monitor ----</option>
-    <option value='{"mode":"monitor", "id":0, "name":"Monitor1"}'>1. Spiel mit ID betrachten</option>
+    <option value=''>==== Monitor ====</option>
+    <option value='{"mode":"allgames"}'>1. Liste aller Spielen anfordern</option>
+    <option value='{"mode":"runninggames"}'>2. Liste aller laufender Spielen</option>
+    <option value='{"mode":"monitor", "id":0, "name":"Monitor1"}'>3. Spiel mit ID betrachten</option>
+    <option value=''>==== Autoren-Werkzeug ====</option>
+    <option value='{"mode":"config","username":"Alice","password":"md5password","config":{}}'>Neues Spiel einf&uuml;gen</option>
 	</select>
     </form>     
     <form><textarea readonly id="log" rows="30" cols="100"></textarea></form><br>
